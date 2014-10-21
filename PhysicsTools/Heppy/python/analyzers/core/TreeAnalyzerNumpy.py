@@ -19,6 +19,8 @@ class TreeAnalyzerNumpy( Analyzer ):
 
         self.file = TFile( fileName, 'recreate', '', isCompressed )
         self.tree = Tree(self.name,self.name)
+    def beginLoop(self):	
+        super(TreeAnalyzerNumpy,self).beginLoop()
         self.declareVariables()
         
     def declareVariables(self):
