@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 import ROOT
 import PhysicsTools.HeppyCore.framework.config as cfg
+from VHbbAnalysis.Heppy.vhbbobj import *
 
 from PhysicsTools.Heppy.analyzers.core.AutoFillTreeProducer  import * 
 treeProducer= cfg.Analyzer(
@@ -9,10 +10,14 @@ treeProducer= cfg.Analyzer(
 	vectorTree = True,
 	collections = {
 		#standard dumping of objects
-   	        "selectedLeptons" : NTupleCollection("leptons", leptonType, 8, help="Leptons after the preselection"),
+   	        "selectedLeptons" : NTupleCollection("leptons", leptonTypeVHbb, 8, help="Leptons after the preselection"),
+   	        "aLeptons" : NTupleCollection("aLeptons", leptonTypeVHbb, 8, help="Additional leptons, not passing the preselection"),
                 "selectedTaus"    : NTupleCollection("TauGood", tauType, 3, help="Taus after the preselection"),
-	        "cleanJets"       : NTupleCollection("Jet",     jetType, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),
-					 help="Cental jets after full selection and cleaning, sorted by b-tag"),
+#	        "cleanJets"       : NTupleCollection("Jet",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),
+#					 help="Cental jets after full selection and cleaning, sorted by b-tag"),
+	        "hJets"       : NTupleCollection("hJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Higgs jets"),
+	        "aJets"       : NTupleCollection("aJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Additional jets"),
+
 		#dump of gen objects
                 "gentopquarks"    : NTupleCollection("GenTop",     genParticleType, 2, help="Generated top quarks from hard scattering"),
                 "genbquarks"      : NTupleCollection("GenBQuark",  genParticleType, 2, help="Generated bottom quarks from top quark decays"),
@@ -67,6 +72,6 @@ config = cfg.Config( components = selectedComponents,
 # and the following runs the process directly 
 if __name__ == '__main__':
     from PhysicsTools.HeppyCore.framework.looper import Looper 
-    looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5)
+    looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5, nEvents = 300)
     looper.loop()
     looper.write()

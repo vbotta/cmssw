@@ -30,8 +30,7 @@ class VHbbAnalyzer( Analyzer ):
 			event.Vtype = 3
 	if nLep == 2: #Z?
 		#check SF OS
-		if event.selectedLeptons[0].charge()*event.selectedLeptons[1].charge()<0 and
-		   abs(event.selectedLeptons[0].pdgId()) == abs(event.selectedLeptons[1].pdgId()) :
+		if event.selectedLeptons[0].charge()*event.selectedLeptons[1].charge()<0 and abs(event.selectedLeptons[0].pdgId()) == abs(event.selectedLeptons[1].pdgId()) :
 			if abs(event.selectedLeptons[0].pdgId()) == 13:
 	                      event.Vtype = 0
 			if abs(event.selectedLeptons[0].pdgId()) == 11:
@@ -43,7 +42,12 @@ class VHbbAnalyzer( Analyzer ):
 		#apply MET cut
 		pass
 
-        print nLep
+	event.aLeptons = [x for x in allLeptons if x not in selectedLeptons]
+
+	#silly jet assigment, just for test
+	event.hJets=event.cleanedJets[0:2]
+	event.aJets=event.cleanedJets[2:]
+
 
         return True
 
