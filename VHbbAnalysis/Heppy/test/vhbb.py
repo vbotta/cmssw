@@ -8,10 +8,13 @@ treeProducer= cfg.Analyzer(
 	class_object=AutoFillTreeProducer, 
 	verbose=False, 
 	vectorTree = True,
+        globalVariables	= {
+		 NTupleVariable("Vtype", lambda ev : ev.Vtype, help="Event classification"),
+	},
 	collections = {
 		#standard dumping of objects
-   	        "selectedLeptons" : NTupleCollection("vleptons", leptonTypeVHbb, 8, help="Leptons after the preselection"),
-   	        "otherLeptons" : NTupleCollection("aLeptons", leptonTypeVHbb, 8, help="Additional leptons, not passing the preselection"),
+   	        "vLeptons" : NTupleCollection("vleptons", leptonTypeVHbb, 8, help="Leptons after the preselection"),
+   	        "aLeptons" : NTupleCollection("aLeptons", leptonTypeVHbb, 8, help="Additional leptons, not passing the preselection"),
 	        "hJets"       : NTupleCollection("hJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Higgs jets"),
 	        "aJets"       : NTupleCollection("aJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Additional jets"),
                 "selectedTaus"    : NTupleCollection("TauGood", tauType, 3, help="Taus after the preselection"),
