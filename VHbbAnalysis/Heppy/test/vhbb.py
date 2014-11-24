@@ -10,13 +10,13 @@ treeProducer= cfg.Analyzer(
 	vectorTree = True,
 	collections = {
 		#standard dumping of objects
-   	        "selectedLeptons" : NTupleCollection("leptons", leptonTypeVHbb, 8, help="Leptons after the preselection"),
-   	        "aLeptons" : NTupleCollection("aLeptons", leptonTypeVHbb, 8, help="Additional leptons, not passing the preselection"),
+   	        "selectedLeptons" : NTupleCollection("vleptons", leptonTypeVHbb, 8, help="Leptons after the preselection"),
+   	        "otherLeptons" : NTupleCollection("aLeptons", leptonTypeVHbb, 8, help="Additional leptons, not passing the preselection"),
+	        "hJets"       : NTupleCollection("hJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Higgs jets"),
+	        "aJets"       : NTupleCollection("aJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Additional jets"),
                 "selectedTaus"    : NTupleCollection("TauGood", tauType, 3, help="Taus after the preselection"),
 #	        "cleanJets"       : NTupleCollection("Jet",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),
 #					 help="Cental jets after full selection and cleaning, sorted by b-tag"),
-	        "hJets"       : NTupleCollection("hJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Higgs jets"),
-	        "aJets"       : NTupleCollection("aJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Additional jets"),
 
 		#dump of gen objects
                 "gentopquarks"    : NTupleCollection("GenTop",     genParticleType, 2, help="Generated top quarks from hard scattering"),

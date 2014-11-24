@@ -42,11 +42,11 @@ class VHbbAnalyzer( Analyzer ):
 		#apply MET cut
 		pass
 
-	event.aLeptons = [x for x in allLeptons if x not in selectedLeptons]
+	#event.aLeptons = [x for x in event.inclusiveLeptons if x not in selectedLeptons]
 
 	#silly jet assigment, just for test
-	event.hJets=event.cleanedJets[0:2]
-	event.aJets=event.cleanedJets[2:]
+	event.hJets=event.cleanJets[0:2]
+	event.aJets=event.cleanJets[2:]
 
 
         return True
