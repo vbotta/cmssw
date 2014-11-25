@@ -8,7 +8,7 @@ class VHbbAnalyzer( Analyzer ):
 
     def declareHandles(self):
         super(VHbbAnalyzer, self).declareHandles()
-        self.handles['met'] =  AutoHandle( 'slimmedMETs', 'std::vector<pat::MET>' )
+#        self.handles['met'] =  AutoHandle( 'slimmedMETs', 'std::vector<pat::MET>' )
 
     def beginLoop(self):
         super(VHbbAnalyzer,self).beginLoop()
@@ -16,8 +16,8 @@ class VHbbAnalyzer( Analyzer ):
        
     def process(self, event):
         self.readCollections( event.input )
-	event.met = self.handles['met'].product()[0]
- 	met = event.met
+#	event.met = self.handles['met'].product()[0]
+# 	met = event.met
 	
 	#assign events to analysis (Vtype)
 	#enum CandidateType{Zmumu, Zee, Wmun, Wen, Znn,  Zemu, Ztaumu, Ztaue, Wtaun, Ztautau, Zbb, UNKNOWN};

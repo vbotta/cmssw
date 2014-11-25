@@ -57,6 +57,10 @@ JetAna = JetAnalyzer.defaultConfig
 from PhysicsTools.Heppy.analyzers.objects.GeneratorAnalyzer import GeneratorAnalyzer
 GenAna = GeneratorAnalyzer.defaultConfig
 
+from PhysicsTools.Heppy.analyzers.objects.METAnalyzer import METAnalyzer
+METAna = METAnalyzer.defaultConfig
+
+
 from VHbbAnalysis.Heppy.VHbbAnalyzer import VHbbAnalyzer
 VHbb= cfg.Analyzer(
     verbose=False,
@@ -64,7 +68,8 @@ VHbb= cfg.Analyzer(
     )
 
 
-sequence = [GenAna,VertexAna,LepAna,TauAna,PhoAna,JetAna,VHbb,treeProducer]
+
+sequence = [GenAna,VertexAna,LepAna,TauAna,PhoAna,JetAna,METAna,VHbb,treeProducer]
 
 
 from PhysicsTools.Heppy.utils.miniAodFiles import miniAodFiles
