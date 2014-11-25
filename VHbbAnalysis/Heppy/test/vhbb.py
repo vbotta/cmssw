@@ -10,7 +10,7 @@ treeProducer= cfg.Analyzer(
 	verbose=False, 
 	vectorTree = True,
         globalVariables	= {
-		 NTupleVariable("Vtype", lambda ev : ev.Vtype, help="Event classification"),
+		 NTupleVariable("Vtype", lambda ev : ev.Vtype, help="Event classification")
 	},
 	collections = {
 		#standard dumping of objects
@@ -18,12 +18,11 @@ treeProducer= cfg.Analyzer(
    	        "aLeptons" : NTupleCollection("aLeptons", leptonTypeVHbb, 8, help="Additional leptons, not passing the preselection"),
 	        "hJets"       : NTupleCollection("hJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Higgs jets"),
 	        "aJets"       : NTupleCollection("aJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Additional jets"),
-
 # uncomment the following to use indices instead of old-style hJets+aJets
-#        "hjidx"       : NTupleCollection("hJidx",    builtInType, 2,help="Higgs jet indices"),
-#        "ajidx"       : NTupleCollection("aJidx",    builtInType, 2,help="additional jet indices"),
-#        "hjidxCSV"       : NTupleCollection("hJCidx",    builtInType, 2,help="Higgs jet indices CSV"),
-#        "ajidxCSV"       : NTupleCollection("aJCidx",    builtInType, 2,help="additional jet indices CSV"),
+                "hjidx"       : NTupleCollection("hJidx",    objectInt, 2,help="Higgs jet indices"),
+#        "ajidx"       : NTupleCollection("aJidx",    objectInt, 2,help="additional jet indices"),
+#        "hjidxCSV"       : NTupleCollection("hJCidx",    objectInt, 2,help="Higgs jet indices CSV"),
+#        "ajidxCSV"       : NTupleCollection("aJCidx",    objectInt, 2,help="additional jet indices CSV"),
 #        "cleanJets"       : NTupleCollection("Jet",     jetTypeVHbb, 8, help="Cental jets after full selection and cleaning, sorted by b-tag"),
 
                 "selectedTaus"    : NTupleCollection("TauGood", tauType, 3, help="Taus after the preselection"),
