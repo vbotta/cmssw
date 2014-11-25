@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 import ROOT
-from DataFormats.FWLite import *
+#from DataFormats.FWLite import *
 import PhysicsTools.HeppyCore.framework.config as cfg
 from VHbbAnalysis.Heppy.vhbbobj import *
 
