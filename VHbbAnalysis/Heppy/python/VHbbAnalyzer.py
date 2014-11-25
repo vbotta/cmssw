@@ -1,32 +1,29 @@
 from PhysicsTools.Heppy.analyzers.core.Analyzer import Analyzer
 from PhysicsTools.Heppy.analyzers.core.AutoHandle import AutoHandle
-
-
+import itertools
+import ROOT
 class VHbbAnalyzer( Analyzer ):
     '''Analyze VH events
     '''
 
     def declareHandles(self):
         super(VHbbAnalyzer, self).declareHandles()
-#       self.handles['met'] =  AutoHandle( self.cfg_ana.metCol, self.cfg_ana.metType )
-
+        self.handles['met'] =  AutoHandle( 'slimmedMETs', 'std::vector<pat::MET>' )
 
     def beginLoop(self):
         super(VHbbAnalyzer,self).beginLoop()
     
-    def selectHiggsJetPair(self,event) :
-        #silly jet assigment, just for test
-        return event.cleanJets[0:2]
-
-
        
     def process(self, event):
         self.readCollections( event.input )
- #      event.met = self.handles['met'].product()[0]
- #      met = event.met
+	event.met = self.handles['met'].product()[0]
+ 	met = event.met
 	
 	#assign events to analysis (Vtype)
 	#enum CandidateType{Zmumu, Zee, Wmun, Wen, Znn,  Zemu, Ztaumu, Ztaue, Wtaun, Ztautau, Zbb, UNKNOWN};
+
+	if len(event.cleanJets) < 2 :
+		return False
 
 	event.Vtype=-1
         nLep=len(event.selectedLeptons)	
@@ -55,14 +52,31 @@ class VHbbAnalyzer( Analyzer ):
 	if nLep == 0:
 		event.Vtype = 5	
 		#apply MET cut
-		pass
+		if  event.met.pt() < 50 :
+			 return False
+	event.V=sum(map(lambda x:x.p4(), event.vLeptons),ROOT.reco.Particle.LorentzVector(0.,0.,0.,0.))
+	
+	if event.Vtype > 1 :	
+		event.V+=met.p4()
 
 	event.aLeptons = [x for x in event.inclusiveLeptons if x not in event.vLeptons]
 
-	#silly jet assigment, just for test
-	event.hJets=self.selectHiggsJetPair(event)
-	event.aJets=event.cleanJets[2:]+event.cleanJetsFwd
+	#leading csv interpretation
+	event.hJetsCSV=sorted(event.cleanJets,key = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'), reverse=True)[0:2]
+        event.aJetsCSV = [x for x in event.cleanJets if x not in event.hJetsCSV]
+	event.hjidxCSV=[event.cleanJets.index(x) for x in event.hJetsCSV ]
+	event.ajidxCSV=[event.cleanJets.index(x) for x in event.aJetsCSV ]
+	event.aJetsCSV+=event.cleanJetsFwd
 
+	#highest pair interpretations
+	event.hJets=list(max(itertools.combinations(event.cleanJets,2), key = lambda x : (x[0].p4()+x[1].p4()).pt() ))
+        event.aJets = [x for x in event.cleanJets if x not in event.hJets]
+	event.hjidx=[event.cleanJets.index(x) for x in event.hJets ]
+	event.ajidx=[event.cleanJets.index(x) for x in event.aJets ]
+	event.aJets+=event.cleanJetsFwd
+	
+	event.HCSV = event.hJetsCSV[0].p4()+event.hJetsCSV[1].p4()
+	event.H = event.hJets[0].p4()+event.hJets[1].p4()
 
         return True
 
