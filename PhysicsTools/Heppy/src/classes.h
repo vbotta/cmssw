@@ -13,8 +13,9 @@
 #include "PhysicsTools/Heppy/interface/HemisphereViaKt.h"
 #include "EgammaAnalysis/ElectronTools/interface/SimpleElectron.h"
 #include "EgammaAnalysis/ElectronTools/interface/ElectronEPcombinator.h"
+#include "PhysicsTools/Heppy/interface/ReclusterJets.h"
 //#include "EgammaAnalysis/ElectronTools/interface/ElectronEnergyCalibrator.h"
-
+using namespace std;
 namespace {
   namespace {
     heppy::BTagSF  bTagSF_; 
@@ -29,6 +30,8 @@ namespace {
     heppy::Davismt2 mt2;
     heppy::mt2w_bisect::mt2w mt2wlept;
     heppy::AlphaT alphaT;
+    heppy::ReclusterJets reclusterJets(vector<float> px, vector<float> py, vector<float> pz, vector<float> E, double ktpower, double rparam);    
+
     //  heppy::SimpleElectron fuffaElectron;
     //  ElectronEnergyCalibrator fuffaElectronCalibrator;
     //  heppy::ElectronEPcombinator fuffaElectronCombinator;

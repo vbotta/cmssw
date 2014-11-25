@@ -16,7 +16,7 @@
 #include "fastjet/Selector.hh"
 #include "fastjet/PseudoJet.hh"
 
-
+namespace heppy{
 class ReclusterJets {
     
  public:
@@ -48,6 +48,6 @@ class ReclusterJets {
   std::vector<fastjet::PseudoJet> inclusiveJets_; 
   std::vector<fastjet::PseudoJet> exclusiveJets_; 
 };
-
+}
 #endif   
  

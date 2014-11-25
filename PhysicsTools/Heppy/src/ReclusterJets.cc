@@ -1,4 +1,4 @@
-#include "CMGTools/RootTools/interface/ReclusterJets.h"
+#include "PhysicsTools/Heppy/interface/ReclusterJets.h"
 #include "FWCore/Utilities/interface/Exception.h"
 
 using namespace std;
@@ -6,6 +6,7 @@ using namespace std;
 //using namespace std;
 using namespace fastjet;
 
+namespace heppy{
 
 ReclusterJets::ReclusterJets(const std::vector<LorentzVector> & objects, double ktpower, double rparam) : 
     ktpower_(ktpower), rparam_(rparam) 
@@ -67,4 +68,4 @@ std::vector<math::XYZTLorentzVector> ReclusterJets::getGroupingExclusive(int nje
   // return
   return makeP4s(exclusiveJets_);
 }
-
+}
