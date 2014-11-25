@@ -5,6 +5,10 @@ import ROOT
 from PhysicsTools.Heppy.analyzers.core.autovars import *
 from PhysicsTools.HeppyCore.utils.deltar import deltaR
 
+builtInType = NTupleObjectType("builtInType", variables = [
+    NTupleVariable("",    lambda x : x),
+])
+
 twoVectorType = NTupleObjectType("twoVector", variables = [
     NTupleVariable("pt",    lambda x : x.pt()),
     NTupleVariable("phi",   lambda x : x.phi()),
