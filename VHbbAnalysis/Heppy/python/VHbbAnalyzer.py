@@ -81,9 +81,9 @@ class VHbbAnalyzer( Analyzer ):
 	#fake MET from Zmumu
 	event.fakeMET = ROOT.reco.Particle.LorentzVector(0.,0.,0.,0.)
 	event.fakeMET.sumet = 0
-	if Vtype == 0 :
+	if event.Vtype == 0 :
 		event.fakeMET=event.met.p4() + event.V
-                fakeMET.sumet = event.met.sumEt - event.V
+                event.fakeMET.sumet = event.met.sumEt() - event.V.pt()
 
         return True
 

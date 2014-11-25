@@ -13,7 +13,7 @@ treeProducer= cfg.Analyzer(
         globalVariables	= {
 		 NTupleVariable("Vtype", lambda ev : ev.Vtype, help="Event classification"),
 		 NTupleVariable("VMt", lambda ev : ev.V.Mt(), help="Transverse mass of the vector boson"),
-		 NTupleVariable("HVdPhi", lambda ev : deltaPhi(ev.V,ev.H), help="Delta phi between Higgs and Z/W"),
+		 NTupleVariable("HVdPhi", lambda ev : deltaPhi(ev.V.phi(),ev.H.phi()), help="Delta phi between Higgs and Z/W"),
 		 NTupleVariable("fakeMET_sumet", lambda ev : ev.fakeMET.sumet, help="Fake SumET from Zmumu events removing muons"),
 		 NTupleVariable("rho",  lambda ev: ev.rho, float, help="kt6PFJets rho"),
 
