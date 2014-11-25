@@ -3,6 +3,7 @@ import ROOT
 from DataFormats.FWLite import *
 import PhysicsTools.HeppyCore.framework.config as cfg
 from VHbbAnalysis.Heppy.vhbbobj import *
+from PhysicsTools.HeppyCore.utils.deltar import deltaPhi
 
 from PhysicsTools.Heppy.analyzers.core.AutoFillTreeProducer  import * 
 treeProducer= cfg.Analyzer(
@@ -10,7 +11,16 @@ treeProducer= cfg.Analyzer(
 	verbose=False, 
 	vectorTree = True,
         globalVariables	= {
-		 NTupleVariable("Vtype", lambda ev : ev.Vtype, help="Event classification")
+		 NTupleVariable("Vtype", lambda ev : ev.Vtype, help="Event classification"),
+		 NTupleVariable("VMt", lambda ev : ev.V.Mt(), help="Transverse mass of the vector boson"),
+		 NTupleVariable("HVdPhi", lambda ev : deltaPhi(ev.V,ev.H), help="Delta phi between Higgs and Z/W"),
+		 NTupleVariable("fakeMET_sumet", lambda ev : ev.fakeMET.sumet, help="Fake SumET from Zmumu events removing muons"),
+		 NTupleVariable("rho",  lambda ev: ev.rho, float, help="kt6PFJets rho"),
+
+	},
+	globalObjects = {
+	        "met"    : NTupleObject("met",     metType, help="PF E_{T}^{miss}, after default type 1 corrections"),
+	        "fakeMET"    : NTupleObject("fakeMET", fourVectorType, help="fake MET in Zmumu event obtained removing the muons"),
 	},
 	collections = {
 		#standard dumping of objects
@@ -18,8 +28,9 @@ treeProducer= cfg.Analyzer(
    	        "aLeptons" : NTupleCollection("aLeptons", leptonTypeVHbb, 8, help="Additional leptons, not passing the preselection"),
 	        "hJets"       : NTupleCollection("hJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Higgs jets"),
 	        "aJets"       : NTupleCollection("aJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Additional jets"),
+
 # uncomment the following to use indices instead of old-style hJets+aJets
-                "hjidx"       : NTupleCollection("hJidx",    objectInt, 2,help="Higgs jet indices"),
+#                "hjidx"       : NTupleCollection("hJidx",    objectInt, 2,help="Higgs jet indices"),
 #        "ajidx"       : NTupleCollection("aJidx",    objectInt, 2,help="additional jet indices"),
 #        "hjidxCSV"       : NTupleCollection("hJCidx",    objectInt, 2,help="Higgs jet indices CSV"),
 #        "ajidxCSV"       : NTupleCollection("aJCidx",    objectInt, 2,help="additional jet indices CSV"),

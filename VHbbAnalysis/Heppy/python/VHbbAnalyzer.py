@@ -57,7 +57,7 @@ class VHbbAnalyzer( Analyzer ):
 	event.V=sum(map(lambda x:x.p4(), event.vLeptons),ROOT.reco.Particle.LorentzVector(0.,0.,0.,0.))
 	
 	if event.Vtype > 1 :	
-		event.V+=met.p4()
+		event.V+=event.met.p4()
 
 	event.aLeptons = [x for x in event.inclusiveLeptons if x not in event.vLeptons]
 
@@ -77,6 +77,13 @@ class VHbbAnalyzer( Analyzer ):
 	
 	event.HCSV = event.hJetsCSV[0].p4()+event.hJetsCSV[1].p4()
 	event.H = event.hJets[0].p4()+event.hJets[1].p4()
+
+	#fake MET from Zmumu
+	event.fakeMET = ROOT.reco.Particle.LorentzVector(0.,0.,0.,0.)
+	event.fakeMET.sumet = 0
+	if Vtype == 0 :
+		event.fakeMET=event.met.p4() + event.V
+                fakeMET.sumet = event.met.sumEt - event.V
 
         return True
 
