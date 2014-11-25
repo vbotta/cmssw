@@ -60,7 +60,7 @@ class VHbbAnalyzer( Analyzer ):
 	event.aLeptons = [x for x in event.inclusiveLeptons if x not in event.vLeptons]
 
 	#silly jet assigment, just for test
-	event.hJets=selectHiggsJetPair(event)
+	event.hJets=self.selectHiggsJetPair(event)
 	event.aJets=event.cleanJets[2:]+event.cleanJetsFwd
 
 

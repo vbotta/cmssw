@@ -221,8 +221,8 @@ class GeneratorAnalyzer( Analyzer ):
             event.pdfWeights[pdf] = [w for w in ws]
             #print "Produced %d weights for %s: %s" % (len(ws),pdf,event.pdfWeights[pdf])
 
-    def process(self, iEvent, event):
-        self.readCollections( iEvent )
+    def process(self, event):
+        self.readCollections( event.input )
 
         ## creating a "sub-event" for this analyzer
         #myEvent = Event(event.iEv)
