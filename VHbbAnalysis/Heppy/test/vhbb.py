@@ -23,8 +23,8 @@ treeProducer= cfg.Analyzer(
 
 		#dump of gen objects
                 "gentopquarks"    : NTupleCollection("GenTop",     genParticleType, 2, help="Generated top quarks from hard scattering"),
-                "genbquarks"      : NTupleCollection("GenBQuark",  genParticleType, 2, help="Generated bottom quarks from top quark decays"),
-                "genwzquarks"     : NTupleCollection("GenQuark",   genParticleWithSourceType, 6, help="Generated quarks from W/Z decays"),
+                "genbquarksFromH"      : NTupleCollection("GenBQuarkFromH",  genParticleType, 2, help="Generated bottom quarks from top quark decays"),
+                "genwzquarks"     : NTupleCollection("GenWZQuark",   genParticleWithSourceType, 6, help="Generated quarks from W/Z decays"),
                 "genleps"         : NTupleCollection("GenLep",     genParticleWithSourceType, 6, help="Generated leptons from W/Z decays"),
                 "gentauleps"      : NTupleCollection("GenLepFromTau", genParticleWithSourceType, 6, help="Generated leptons from decays of taus from W/Z/h decays"),
 
@@ -59,7 +59,7 @@ VHbb= cfg.Analyzer(
     )
 
 
-sequence = [VertexAna,LepAna,TauAna,PhoAna,JetAna,GenAna,VHbb,treeProducer]
+sequence = [GenAna,VertexAna,LepAna,TauAna,PhoAna,JetAna,VHbb,treeProducer]
 
 
 from PhysicsTools.Heppy.utils.miniAodFiles import miniAodFiles
@@ -67,6 +67,7 @@ sample = cfg.Component(
     files = ["root://xrootd.ba.infn.it//store/mc/Spring14miniaod/ZH_HToBB_ZToLL_M-125_13TeV_powheg-herwigpp/MINIAODSIM/141029_PU40bx50_PLS170_V6AN2-v1/00000/226BB247-A565-E411-91CF-00266CFF0AF4.root"],
     name="ATEST", isMC=True,isEmbed=False
     )
+sample.isMC=True
 
 # the following is declared in case this cfg is used in input to the heppy.py script
 selectedComponents = [sample]
