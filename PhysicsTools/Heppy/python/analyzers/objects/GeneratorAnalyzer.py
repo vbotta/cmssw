@@ -124,7 +124,8 @@ class GeneratorAnalyzer( Analyzer ):
                     self.fillWZQuarks(   event, dau, True, sourceId=6 )
 
     def makeMCInfo(self, event):
-        event.genParticles = map( GenParticle, self.mchandles['genParticles'].product() )
+#       event.genParticles = map( GenParticle, self.mchandles['genParticles'].product() )
+        event.genParticles = list(self.mchandles['genParticles'].product() )
 
         if False:
             for i,p in enumerate(event.genParticles):
@@ -149,7 +150,6 @@ class GeneratorAnalyzer( Analyzer ):
         event.genallbquarks = []
         event.genwzquarks = []
         event.gentopquarks  = []
-        event.genallbquarks = [ p for p in event.genParticles if abs(p.pdgId()) == 5 and ( p.numberOfDaughters() == 0 or abs(p.daughter(0).pdgId()) != 5) ]
         event.genallcquarks = [ p for p in event.genParticles if abs(p.pdgId()) == 4 and ( p.numberOfDaughters() == 0 or abs(p.daughter(0).pdgId()) != 4) ]
 
         higgsBosons = [ p for p in event.genParticles if (p.pdgId() == 25) and p.numberOfDaughters() > 0 and abs(p.daughter(0).pdgId()) != 25 ]
