@@ -1,11 +1,13 @@
 #! /usr/bin/env python
+fastObjects=True
+
 import ROOT
 from DataFormats.FWLite import *
 import PhysicsTools.HeppyCore.framework.config as cfg
 from VHbbAnalysis.Heppy.vhbbobj import *
 from PhysicsTools.HeppyCore.utils.deltar import deltaPhi
-
 from PhysicsTools.Heppy.analyzers.core.AutoFillTreeProducer  import * 
+
 treeProducer= cfg.Analyzer(
 	class_object=AutoFillTreeProducer, 
 	verbose=False, 
@@ -85,8 +87,9 @@ sequence = [GenAna,VertexAna,LepAna,TauAna,PhoAna,JetAna,METAna,VHbb,treeProduce
 
 from PhysicsTools.Heppy.utils.miniAodFiles import miniAodFiles
 sample = cfg.Component(
-    files = ["root://xrootd.ba.infn.it//store/mc/Spring14miniaod/ZH_HToBB_ZToLL_M-125_13TeV_powheg-herwigpp/MINIAODSIM/141029_PU40bx50_PLS170_V6AN2-v1/00000/226BB247-A565-E411-91CF-00266CFF0AF4.root"],
-    name="ATEST", isMC=True,isEmbed=False
+    #files = ["root://xrootd.ba.infn.it//store/mc/Spring14miniaod/ZH_HToBB_ZToLL_M-125_13TeV_powheg-herwigpp/MINIAODSIM/141029_PU40bx50_PLS170_V6AN2-v1/00000/226BB247-A565-E411-91CF-00266CFF0AF4.root"],
+    files = ["226BB247-A565-E411-91CF-00266CFF0AF4.root"],
+    name="ATEST", isEmbed=False
     )
 sample.isMC=True
 
@@ -100,6 +103,12 @@ config = cfg.Config( components = selectedComponents,
 # and the following runs the process directly 
 if __name__ == '__main__':
     from PhysicsTools.HeppyCore.framework.looper import Looper 
-    looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5, nEvents = 300)
-    looper.loop()
+    looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5, nEvents = 9000)
+    import time
+    import cProfile
+    p = cProfile.Profile(time.clock)
+    p.runcall(looper.loop)
+    p.print_stats()
+
+   # looper.loop()
     looper.write()

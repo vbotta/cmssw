@@ -8,15 +8,25 @@ class VHbbAnalyzer( Analyzer ):
 
     def declareHandles(self):
         super(VHbbAnalyzer, self).declareHandles()
-#        self.handles['met'] =  AutoHandle( 'slimmedMETs', 'std::vector<pat::MET>' )
+#        self.handles['pfCands'] =  AutoHandle( 'packedPFCandidates', 'std::vector<pat::PackedCandidate>' )
 
     def beginLoop(self):
         super(VHbbAnalyzer,self).beginLoop()
     
-       
+    def makeJets(self,event):
+	inputs=ROOT.std.vector(ROOT.heppy.ReclusterJets.LorentzVector)()
+	for pf in event.pfCands :
+	     if pf.fromPV() :
+		inputs.push_back(pf.p4())
+	clusterizer=ROOT.heppy.ReclusterJets(inputs,-1,0.1)
+	jets = clusterizer.getGrouping(30)
+	#for j in list(jets)[0:3]:
+	#	print j.pt(),
+	#print " "
+
     def process(self, event):
         self.readCollections( event.input )
-#	event.met = self.handles['met'].product()[0]
+#	event.pfCands = self.handles['pfCands'].product()
 # 	met = event.met
 	
 	#assign events to analysis (Vtype)
@@ -84,7 +94,8 @@ class VHbbAnalyzer( Analyzer ):
 	if event.Vtype == 0 :
 		event.fakeMET=event.met.p4() + event.V
                 event.fakeMET.sumet = event.met.sumEt() - event.V.pt()
-
+	
+	#self.makeJets(event)
         return True
 
 

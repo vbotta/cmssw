@@ -4,14 +4,14 @@ import ROOT
 #from CMGTools.TTHAnalysis.signedSip import *
 from PhysicsTools.Heppy.analyzers.objects.autophobj import *
 
-leptonTypeVHbb = NTupleObjectType("leptonSusy", baseObjectTypes = [ leptonType ], variables = [
+leptonTypeVHbb = NTupleObjectType("leptonTypeVHbb", baseObjectTypes = [ leptonType ], variables = [
     # Loose id 
     NTupleVariable("looseIdSusy", lambda x : x.looseIdSusy if hasattr(x, 'looseIdSusy') else -1, int, help="Loose ID for Susy ntuples (always true on selected leptons)"),
     # Isolations with the two radia
     NTupleVariable("relIso03",  lambda x : x.relIso03, help="PF Rel Iso, R=0.3, with deltaBeta correction for muons and rho corrections for electrons"),
     NTupleVariable("relIso04",  lambda x : x.relIso04, help="PF Rel Iso, R=0.4, with deltaBeta correction for muons and rho corrections for electrons"),
-    NTupleVariable("chargedHadRelIso03",  lambda x : x.chargedHadronIso(0.3)/x.pt(), help="PF Rel Iso, R=0.3, charged hadrons only"),
-    NTupleVariable("chargedHadRelIso04",  lambda x : x.chargedHadronIso(0.4)/x.pt(), help="PF Rel Iso, R=0.4, charged hadrons only"),
+    NTupleVariable("chargedHadRelIso03",  lambda x : x.chargedHadronIsoR(0.3)/x.pt(), help="PF Rel Iso, R=0.3, charged hadrons only"),
+    NTupleVariable("chargedHadRelIso04",  lambda x : x.chargedHadronIsoR(0.4)/x.pt(), help="PF Rel Iso, R=0.4, charged hadrons only"),
     # Extra electron id variables
 #    NTupleVariable("convVetoFull", lambda x : (x.passConversionVeto() and x.gsfTrack().trackerExpectedHitsInner().numberOfLostHits() == 0) if abs(x.pdgId())==11 else 1, int, help="Conv veto + no missing hits for electrons, always true for muons."),
     #NTupleVariable("eleCutId2012",     lambda x : (1*x.electronID("POG_Cuts_ID_2012_Veto") + 1*x.electronID("POG_Cuts_ID_2012_Loose") + 1*x.electronID("POG_Cuts_ID_2012_Medium") + 1*x.electronID("POG_Cuts_ID_2012_Tight")) if abs(x.pdgId()) == 11 else -1, int, help="Electron cut-based id (POG 2012): 0=none, 1=veto, 2=loose, 3=medium, 4=tight"),
