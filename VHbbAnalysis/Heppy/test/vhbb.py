@@ -104,11 +104,11 @@ config = cfg.Config( components = selectedComponents,
 if __name__ == '__main__':
     from PhysicsTools.HeppyCore.framework.looper import Looper 
     looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5, nEvents = 9000)
-    import time
-    import cProfile
-    p = cProfile.Profile(time.clock)
-    p.runcall(looper.loop)
-    p.print_stats()
+#    import time
+#    import cProfile
+#    p = cProfile.Profile(time.clock)
+#    p.runcall(looper.loop)
+#    p.print_stats()
 
-   # looper.loop()
+    looper.loop()
     looper.write()

@@ -168,7 +168,7 @@ class Electron( Lepton ):
             vertex = self.associatedVertex
         return self.gsfTrack().dxy( vertex.position() )
     def p4(self):	
-	 return ROOT.reco.Candidate.p4(self) 
+	 return ROOT.reco.Candidate.p4(self.physObj) 
 
 #    def p4(self):
 #        return self.physObj.p4(self.physObj.candidateP4Kind()) # if kind == None else kind)
