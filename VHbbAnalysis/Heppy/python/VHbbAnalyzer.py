@@ -23,18 +23,37 @@ class VHbbAnalyzer( Analyzer ):
 	#for j in list(jets)[0:3]:
 	#	print j.pt(),
 	#print " "
+    def doFakeMET(self,event):
+	#fake MET from Zmumu
+	event.fakeMET = ROOT.reco.Particle.LorentzVector(0.,0.,0.,0.)
+	event.fakeMET.sumet = 0
+	if event.Vtype == 0 :
+		event.fakeMET=event.met.p4() + event.V
+                event.fakeMET.sumet = event.met.sumEt() - event.V.pt()
 
-    def process(self, event):
-        self.readCollections( event.input )
-#	event.pfCands = self.handles['pfCands'].product()
-# 	met = event.met
+    def doHiggsHighCSV(self,event) :
+        #leading csv interpretation
+        event.hJetsCSV=sorted(event.cleanJets,key = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'), reverse=True)[0:2]
+        event.aJetsCSV = [x for x in event.cleanJets if x not in event.hJetsCSV]
+        event.hjidxCSV=[event.cleanJets.index(x) for x in event.hJetsCSV ]
+        event.ajidxCSV=[event.cleanJets.index(x) for x in event.aJetsCSV ]
+        event.aJetsCSV+=event.cleanJetsFwd
+        event.HCSV = event.hJetsCSV[0].p4()+event.hJetsCSV[1].p4()
+
+    def doHiggsHighPt(self,event) :
+        #highest pair interpretations
+        event.hJets=list(max(itertools.combinations(event.cleanJets,2), key = lambda x : (x[0].p4()+x[1].p4()).pt() ))
+        event.aJets = [x for x in event.cleanJets if x not in event.hJets]
+        event.hjidx=[event.cleanJets.index(x) for x in event.hJets ]
+        event.ajidx=[event.cleanJets.index(x) for x in event.aJets ]
+        event.aJets+=event.cleanJetsFwd
+        event.H = event.hJets[0].p4()+event.hJets[1].p4()
+
 	
+
+    def classifyEvent(self,event):
 	#assign events to analysis (Vtype)
 	#enum CandidateType{Zmumu, Zee, Wmun, Wen, Znn,  Zemu, Ztaumu, Ztaue, Wtaun, Ztautau, Zbb, UNKNOWN};
-
-	if len(event.cleanJets) < 2 :
-		return False
-
 	event.Vtype=-1
         nLep=len(event.selectedLeptons)	
 	event.vLeptons=[]
@@ -48,6 +67,7 @@ class VHbbAnalyzer( Analyzer ):
 			event.vLeptons =event.selectedLeptons
 	#ZllH check first if a Zmumu can be made, otherwise Zee
 	if nLep >= 2: #Z?
+		#TODO: check more combinations
 		if len(event.selectedMuons) ==  2 :
 			if event.selectedMuons[0].charge()*event.selectedMuons[1].charge()<0 :
 	                      event.Vtype = 0
@@ -71,30 +91,44 @@ class VHbbAnalyzer( Analyzer ):
 
 	event.aLeptons = [x for x in event.inclusiveLeptons if x not in event.vLeptons]
 
-	#leading csv interpretation
-	event.hJetsCSV=sorted(event.cleanJets,key = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'), reverse=True)[0:2]
-        event.aJetsCSV = [x for x in event.cleanJets if x not in event.hJetsCSV]
-	event.hjidxCSV=[event.cleanJets.index(x) for x in event.hJetsCSV ]
-	event.ajidxCSV=[event.cleanJets.index(x) for x in event.aJetsCSV ]
-	event.aJetsCSV+=event.cleanJetsFwd
+	return True
 
-	#highest pair interpretations
-	event.hJets=list(max(itertools.combinations(event.cleanJets,2), key = lambda x : (x[0].p4()+x[1].p4()).pt() ))
-        event.aJets = [x for x in event.cleanJets if x not in event.hJets]
-	event.hjidx=[event.cleanJets.index(x) for x in event.hJets ]
-	event.ajidx=[event.cleanJets.index(x) for x in event.aJets ]
-	event.aJets+=event.cleanJetsFwd
+    def process(self, event):
+        self.readCollections( event.input )
+#	event.pfCands = self.handles['pfCands'].product()
+# 	met = event.met
 	
-	event.HCSV = event.hJetsCSV[0].p4()+event.hJetsCSV[1].p4()
-	event.H = event.hJets[0].p4()+event.hJets[1].p4()
+	#substructure threshold, make configurable
+	ssTrheshold = 200.
+	# filter events with less than 2 jets with pt 20
+	if not   (len(event.cleanJets) >= 2 and event.cleanJets[1] > 20.) : # or(len(event.cleanJets) == 1 and event.cleanJets[0] > ssThreshold ) ) :
+		return False
 
-	#fake MET from Zmumu
-	event.fakeMET = ROOT.reco.Particle.LorentzVector(0.,0.,0.,0.)
-	event.fakeMET.sumet = 0
-	if event.Vtype == 0 :
-		event.fakeMET=event.met.p4() + event.V
-                event.fakeMET.sumet = event.met.sumEt() - event.V.pt()
-	
+	if not self.classifyEvent(event) :
+		return False
+	self.doHiggsHighCSV(event)
+	self.doHiggsHighPt(event)
+	self.doFakeMET(event)
+   	
+	#to implement
+	#if some threshold: 
+	#   self.computeSubStructuresStuff()  
+   	
+	#self.doIVFHiggs()
+	#self.computePullAngle()
+	#
+
+	#perhaps in different producers:	
+	# LHE weights
+	# Trigger weights
+	# gen level VH specific info
+	# add soft jet info to jets
+	# PU weights
+	# SIM B hadrons information
+	# MET corrections (in MET analyzer)
+  	# trigger flags
+		
+
 	#self.makeJets(event)
         return True
 

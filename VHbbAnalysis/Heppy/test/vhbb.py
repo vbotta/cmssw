@@ -26,6 +26,8 @@ treeProducer= cfg.Analyzer(
 	},
 	collections = {
 		#standard dumping of objects
+   	        "selectedLeptons" : NTupleCollection("selLeptons", leptonTypeVHbb, 8, help="Leptons after the preselection"),
+		#old style stuff
    	        "vLeptons" : NTupleCollection("vleptons", leptonTypeVHbb, 8, help="Leptons after the preselection"),
    	        "aLeptons" : NTupleCollection("aLeptons", leptonTypeVHbb, 8, help="Additional leptons, not passing the preselection"),
 	        "hJets"       : NTupleCollection("hJets",     jetTypeVHbb, 8, sortDescendingBy = lambda jet : jet.btag('combinedSecondaryVertexBJetTags'),help="Higgs jets"),
@@ -53,7 +55,7 @@ treeProducer= cfg.Analyzer(
 from PhysicsTools.Heppy.analyzers.objects.LeptonAnalyzer import LeptonAnalyzer
 LepAna = LeptonAnalyzer.defaultConfig
 #replace one parameter
-LepAna.loose_muon_pt = 10
+LepAna.loose_muon_pt = 20
 
 from PhysicsTools.Heppy.analyzers.objects.VertexAnalyzer import VertexAnalyzer
 VertexAna = VertexAnalyzer.defaultConfig
@@ -103,7 +105,7 @@ config = cfg.Config( components = selectedComponents,
 # and the following runs the process directly 
 if __name__ == '__main__':
     from PhysicsTools.HeppyCore.framework.looper import Looper 
-    looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5, nEvents = 9000)
+    looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5)
 #    import time
 #    import cProfile
 #    p = cProfile.Profile(time.clock)
