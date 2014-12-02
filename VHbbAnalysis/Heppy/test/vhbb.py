@@ -80,6 +80,10 @@ from VHbbAnalysis.Heppy.VHbbAnalyzer import VHbbAnalyzer
 VHbb= cfg.Analyzer(
     verbose=False,
     class_object=VHbbAnalyzer,
+    wEleSelection = lambda x : x.pt() > 25 and x.electronID("cutBasedElectronID-CSA14-PU20bx25-V0-standalone-tight"),
+    wMuSelection = lambda x : x.pt() > 25,
+    zEleSelection = lambda x : x.pt() > 20 and x.electronID("cutBasedElectronID-CSA14-PU20bx25-V0-standalone-loose"),
+    zMuSelection = lambda x : x.pt() > 20,
     )
 
 
@@ -105,7 +109,7 @@ config = cfg.Config( components = selectedComponents,
 # and the following runs the process directly 
 if __name__ == '__main__':
     from PhysicsTools.HeppyCore.framework.looper import Looper 
-    looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5)
+    looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5,nEvents= 3000)
 #    import time
 #    import cProfile
 #    p = cProfile.Profile(time.clock)

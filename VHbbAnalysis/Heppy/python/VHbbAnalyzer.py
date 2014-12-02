@@ -49,7 +49,6 @@ class VHbbAnalyzer( Analyzer ):
         event.aJets+=event.cleanJetsFwd
         event.H = event.hJets[0].p4()+event.hJets[1].p4()
 
-	
 
     def classifyEvent(self,event):
 	#assign events to analysis (Vtype)
@@ -58,32 +57,40 @@ class VHbbAnalyzer( Analyzer ):
         nLep=len(event.selectedLeptons)	
 	event.vLeptons=[]
 	#WH requires exactly one selected lepton
-	if nLep == 1: 
+	wElectrons=[x for x in event.selectedElectrons if self.cfg_ana.wEleSelection(x) ]
+	wMuons=[x for x in event.selectedMuons if self.cfg_ana.wMuSelection(x) ]
+	zElectrons=[x for x in event.selectedElectrons if self.cfg_ana.zEleSelection(x) ]
+	zMuons=[x for x in event.selectedMuons if self.cfg_ana.zMuSelection(x) ]
+
+
+	if len(zMuons) >=  2 :
+		    for i in xrange(1,len(zMuons)):
+			if zMuons[0].charge()*zMuons[i].charge()<0 :
+	                      event.Vtype = 0
+			      event.vLeptons =[zMuons[0],zMuons[i]]
+			      break
+	elif len(zElectrons) >=  2 :
+#	    for i in zElectrons[0].electronIDs()  :
+#			print i.first,i.second
+		    for i in xrange(1,len(zElectrons)):
+			if zElectrons[0].charge()*zElectrons[i].charge()<0 :
+	                      event.Vtype = 1
+			      event.vLeptons =[zElectrons[0],zElectrons[i]]
+			      break
+	elif len(wElectrons) + len(wMuons) == 1: 
 		if abs(event.selectedLeptons[0].pdgId())==13 :
 			event.Vtype = 2
 			event.vLeptons =event.selectedLeptons
 		if abs(event.selectedLeptons[0].pdgId())==11 :
 			event.Vtype = 3
 			event.vLeptons =event.selectedLeptons
-	#ZllH check first if a Zmumu can be made, otherwise Zee
-	if nLep >= 2: #Z?
-		#TODO: check more combinations
-		if len(event.selectedMuons) ==  2 :
-			if event.selectedMuons[0].charge()*event.selectedMuons[1].charge()<0 :
-	                      event.Vtype = 0
-			      event.vLeptons =event.selectedMuons
-		elif len(event.selectedElectrons) ==  2 : 
-			if event.selectedElectrons[0].charge()*event.selectedElectrons[1].charge()<0 :
-	                      event.Vtype = 1
-			      event.vLeptons =event.selectedElectrons
-		else :
-			event.Vtype = 123
-
-	if nLep == 0:
+	else :
 		event.Vtype = 5	
 		#apply MET cut
 		if  event.met.pt() < 50 :
 			 return False
+
+
 	event.V=sum(map(lambda x:x.p4(), event.vLeptons),ROOT.reco.Particle.LorentzVector(0.,0.,0.,0.))
 	
 	if event.Vtype > 1 :	
