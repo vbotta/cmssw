@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 import ROOT
-#from DataFormats.FWLite import *
+from DataFormats.FWLite import *
 import PhysicsTools.HeppyCore.framework.config as cfg
 from VHbbAnalysis.Heppy.vhbbobj import *
 
@@ -24,11 +24,14 @@ treeProducer= cfg.Analyzer(
 
 		#dump of gen objects
                 "gentopquarks"    : NTupleCollection("GenTop",     genParticleType, 2, help="Generated top quarks from hard scattering"),
-                "genbquarksFromH"      : NTupleCollection("GenBQuarkFromH",  genParticleType, 2, help="Generated bottom quarks from top quark decays"),
+                "genbquarksFromH"      : NTupleCollection("GenBQuarkFromH",  genParticleType, 2, help="Generated bottom quarks from Higgs decays"),
                 "genwzquarks"     : NTupleCollection("GenWZQuark",   genParticleWithSourceType, 6, help="Generated quarks from W/Z decays"),
                 "genleps"         : NTupleCollection("GenLep",     genParticleWithSourceType, 6, help="Generated leptons from W/Z decays"),
                 "gentauleps"      : NTupleCollection("GenLepFromTau", genParticleWithSourceType, 6, help="Generated leptons from decays of taus from W/Z/h decays"),
-
+		"genHiggsBoson"   : NTupleCollection("GenHiggsBoson", genParticleType, 1, help="Generated Higgs boson "),
+		#"genZbosonsToLL"  : NTupleCollection("GenZbosonsToLL", genParticleType, 6, help="Generated W or Z bosons decaying to LL"),
+		#"genWbosonsToLL"  : NTupleCollection("GenWbosonsToLL", genParticleType, 6, help="Generated W or Z bosons decaying to LL"),
+		"genvbosons"       : NTupleCollection("GenVbosons", genParticleType, 6, help="Generated W or Z bosons, mass > 30"),
 	}
 	)
 
@@ -70,6 +73,9 @@ sample = cfg.Component(
     )
 sample.isMC=True
 
+#/store/mc/Spring14miniaod/ZH_HToBB_ZToLL_M-125_13TeV_powheg-herwigpp/MINIAODSIM/141029_PU40bx50_PLS170_V6AN2-v1/00000/226BB247-A565-E411-91CF-00266CFF0AF4.root
+#/store/mc/Spring14miniaod/DYJetsToLL_M-50_13TeV-madgraph-pythia8-tauola_v2/MINIAODSIM/141029_PU40bx50_PLS170_V6AN2-v1/10000/0004A557-C666-E411-8698-549F35AD8B61.root
+
 # the following is declared in case this cfg is used in input to the heppy.py script
 selectedComponents = [sample]
 from PhysicsTools.HeppyCore.framework.eventsfwlite import Events
@@ -80,6 +86,6 @@ config = cfg.Config( components = selectedComponents,
 # and the following runs the process directly 
 if __name__ == '__main__':
     from PhysicsTools.HeppyCore.framework.looper import Looper 
-    looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5, nEvents = 300)
+    looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5, nEvents = 10)
     looper.loop()
     looper.write()
