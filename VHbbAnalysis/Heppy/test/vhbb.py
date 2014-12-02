@@ -14,6 +14,7 @@ treeProducer= cfg.Analyzer(
 	vectorTree = True,
         globalVariables	= {
 		 NTupleVariable("Vtype", lambda ev : ev.Vtype, help="Event classification"),
+		 NTupleVariable("VtypeSim", lambda ev : ev.VtypeSim, help="Event classification",mcOnly=True),
 		 NTupleVariable("VMt", lambda ev : ev.V.Mt(), help="Transverse mass of the vector boson"),
 		 NTupleVariable("HVdPhi", lambda ev : deltaPhi(ev.V.phi(),ev.H.phi()), help="Delta phi between Higgs and Z/W"),
 		 NTupleVariable("fakeMET_sumet", lambda ev : ev.fakeMET.sumet, help="Fake SumET from Zmumu events removing muons"),

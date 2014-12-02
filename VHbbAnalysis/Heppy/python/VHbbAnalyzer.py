@@ -49,6 +49,10 @@ class VHbbAnalyzer( Analyzer ):
         event.aJets+=event.cleanJetsFwd
         event.H = event.hJets[0].p4()+event.hJets[1].p4()
 
+    def classifyMCEvent(self,event):
+        if self.cfg_comp.isMC:
+		event.VtypeSim = -1
+		#event.bosons.
 
     def classifyEvent(self,event):
 	#assign events to analysis (Vtype)
@@ -116,7 +120,10 @@ class VHbbAnalyzer( Analyzer ):
 	self.doHiggsHighCSV(event)
 	self.doHiggsHighPt(event)
 	self.doFakeMET(event)
-   	
+
+
+   	self.classifyMCEvent(event)
+	
 	#to implement
 	#if some threshold: 
 	#   self.computeSubStructuresStuff()  
