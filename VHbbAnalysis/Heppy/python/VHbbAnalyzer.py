@@ -85,7 +85,7 @@ class VHbbAnalyzer( Analyzer ):
 			event.Vtype = 3
 			event.vLeptons =event.selectedLeptons
 	else :
-		event.Vtype = 5	
+		event.Vtype = 4	
 		#apply MET cut
 		if  event.met.pt() < 50 :
 			 return False
