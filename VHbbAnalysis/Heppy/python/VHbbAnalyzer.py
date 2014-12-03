@@ -52,7 +52,39 @@ class VHbbAnalyzer( Analyzer ):
     def classifyMCEvent(self,event):
         if self.cfg_comp.isMC:
 		event.VtypeSim = -1
-		#event.bosons.
+		if len(event.genvbosons) == 1:
+			# ZtoLL events, same flavour leptons
+			if event.genvbosons[0].pdgId()==23 and event.genvbosons[0].numberOfDaughters()>1 and abs(event.genvbosons[0].daughter(0).pdgId()) == abs(event.genvbosons[0].daughter(1).pdgId()):
+				if abs(event.genvbosons[0].daughter(0).pdgId()) == 11:
+ 					#Ztoee
+					event.VtypeSim = 1
+				if abs(event.genvbosons[0].daughter(0).pdgId()) == 13:
+ 					#ZtoMuMu
+					event.VtypeSim = 0
+				if abs(event.genvbosons[0].daughter(0).pdgId()) == 15:
+ 					#ZtoTauTau
+					event.VtypeSim = 5
+				if abs(event.genvbosons[0].daughter(0).pdgId()) in [12,14,16]:
+					event.VtypeSim = 4
+			#WtoLNu events	
+			if abs(event.genvbosons[0].pdgId())==24 and event.genvbosons[0].numberOfDaughters()==2:
+				if abs(event.genvbosons[0].daughter(0).pdgId()) == 11 and abs(event.genvbosons[0].daughter(1).pdgId()) == 12:
+					#WtoEleNu_e
+					event.VtypeSim = 3
+			if abs(event.genvbosons[0].daughter(0).pdgId()) == 13 and abs(event.genvbosons[0].daughter(1).pdgId()) == 14:
+					#WtoMuNu_mu
+					event.VtypeSim = 2
+			#to be added: WtoTauNu
+
+		if len(event.genvbosons)>1:
+			print 'more than one W/Zbosons?'
+			event.VtypeSim = -2
+		if event.VtypeSim == -1:
+			print '===================================='
+			print ' --------- Debug VtypeSim -1 --------'
+			print '# genVbosons: ',len(event.genvbosons), '| #daughters ', event.genvbosons[0].numberOfDaughters()
+			for i in xrange (0, event.genvbosons[0].numberOfDaughters() ) :
+				print 'daughter ',i ,'| pdgId', event.genvbosons[0].daughter(i).pdgId()	
 
     def classifyEvent(self,event):
 	#assign events to analysis (Vtype)

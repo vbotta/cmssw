@@ -19,11 +19,13 @@ treeProducer= cfg.Analyzer(
 		 NTupleVariable("HVdPhi", lambda ev : deltaPhi(ev.V.phi(),ev.H.phi()), help="Delta phi between Higgs and Z/W"),
 		 NTupleVariable("fakeMET_sumet", lambda ev : ev.fakeMET.sumet, help="Fake SumET from Zmumu events removing muons"),
 		 NTupleVariable("rho",  lambda ev: ev.rho, float, help="kt6PFJets rho"),
-
+		 NTupleVariable("deltaR_jj",  lambda ev: deltaR(ev.hJets[0].eta(),ev.hJets[0].phi(),ev.hJets[1].eta(),ev.hJets[1].phi()), float, help="deltaR higgsJets"),
 	},
 	globalObjects = {
 	        "met"    : NTupleObject("met",     metType, help="PF E_{T}^{miss}, after default type 1 corrections"),
 	        "fakeMET"    : NTupleObject("fakeMET", fourVectorType, help="fake MET in Zmumu event obtained removing the muons"),
+	        "H"    : NTupleObject("H", fourVectorType, help="higgs"),
+	        "V"    : NTupleObject("V", fourVectorType, help="z or w"),
 	},
 	collections = {
 		#standard dumping of objects
@@ -46,8 +48,8 @@ treeProducer= cfg.Analyzer(
                 "gentopquarks"    : NTupleCollection("GenTop",     genParticleType, 2, help="Generated top quarks from hard scattering"),
                 "genbquarksFromH"      : NTupleCollection("GenBQuarkFromH",  genParticleType, 2, help="Generated bottom quarks from Higgs decays"),
                 "genwzquarks"     : NTupleCollection("GenWZQuark",   genParticleWithSourceType, 6, help="Generated quarks from W/Z decays"),
-                "genleps"         : NTupleCollection("GenLep",     genParticleWithSourceType, 6, help="Generated leptons from W/Z decays"),
-                "gentauleps"      : NTupleCollection("GenLepFromTau", genParticleWithSourceType, 6, help="Generated leptons from decays of taus from W/Z/h decays"),
+                "genleps"         : NTupleCollection("GenLep",     genParticleWithSourceType, 2, help="Generated leptons from W/Z decays"),
+                "gentauleps"      : NTupleCollection("GenLepFromTau", genParticleWithSourceType, 6, help="Generated leptons from decays of taus from W/Z decays"),
 		"genHiggsBoson"   : NTupleCollection("GenHiggsBoson", genParticleType, 1, help="Generated Higgs boson "),
 		#"genZbosonsToLL"  : NTupleCollection("GenZbosonsToLL", genParticleType, 6, help="Generated W or Z bosons decaying to LL"),
 		#"genWbosonsToLL"  : NTupleCollection("GenWbosonsToLL", genParticleType, 6, help="Generated W or Z bosons decaying to LL"),
@@ -85,9 +87,9 @@ VHbb= cfg.Analyzer(
     verbose=False,
     class_object=VHbbAnalyzer,
     wEleSelection = lambda x : x.pt() > 25 and x.electronID("cutBasedElectronID-CSA14-PU20bx25-V0-standalone-tight"),
-    wMuSelection = lambda x : x.pt() > 25,
+    wMuSelection = lambda x : x.pt() > 25 and x.muonID("POG_ID_Tight"),
     zEleSelection = lambda x : x.pt() > 20 and x.electronID("cutBasedElectronID-CSA14-PU20bx25-V0-standalone-loose"),
-    zMuSelection = lambda x : x.pt() > 20,
+    zMuSelection = lambda x : x.pt() > 20 and x.muonID("POG_ID_Tight"),
     )
 
 
@@ -97,12 +99,13 @@ sequence = [GenAna,VertexAna,LepAna,TauAna,PhoAna,JetAna,METAna,VHbb,treeProduce
 
 from PhysicsTools.Heppy.utils.miniAodFiles import miniAodFiles
 sample = cfg.Component(
-    #files = ["root://xrootd.ba.infn.it//store/mc/Spring14miniaod/ZH_HToBB_ZToLL_M-125_13TeV_powheg-herwigpp/MINIAODSIM/141029_PU40bx50_PLS170_V6AN2-v1/00000/226BB247-A565-E411-91CF-00266CFF0AF4.root"],
-    files = ["226BB247-A565-E411-91CF-00266CFF0AF4.root"],
+    files = ["/scratch/arizzi/Hbb/CMSSW_7_0_9_patch3/src/VHbbAnalysis/Heppy/test/226BB247-A565-E411-91CF-00266CFF0AF4.root"],
+    #files = ["226BB247-A565-E411-91CF-00266CFF0AF4.root"],
     name="ATEST", isEmbed=False
     )
 sample.isMC=True
 
+#"root://xrootd.ba.infn.it//store/mc/Spring14miniaod/ZH_HToBB_ZToLL_M-125_13TeV_powheg-herwigpp/MINIAODSIM/141029_PU40bx50_PLS170_V6AN2-v1/00000/226BB247-A565-E411-91CF-00266CFF0AF4.root"
 #/store/mc/Spring14miniaod/ZH_HToBB_ZToLL_M-125_13TeV_powheg-herwigpp/MINIAODSIM/141029_PU40bx50_PLS170_V6AN2-v1/00000/226BB247-A565-E411-91CF-00266CFF0AF4.root
 #/store/mc/Spring14miniaod/DYJetsToLL_M-50_13TeV-madgraph-pythia8-tauola_v2/MINIAODSIM/141029_PU40bx50_PLS170_V6AN2-v1/10000/0004A557-C666-E411-8698-549F35AD8B61.root
 
@@ -116,7 +119,7 @@ config = cfg.Config( components = selectedComponents,
 # and the following runs the process directly 
 if __name__ == '__main__':
     from PhysicsTools.HeppyCore.framework.looper import Looper 
-    looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5,nEvents= 3000)
+    looper = Looper( 'Loop', sample, sequence, Events, nPrint = 5,nEvents= 40000)
 #    import time
 #    import cProfile
 #    p = cProfile.Profile(time.clock)

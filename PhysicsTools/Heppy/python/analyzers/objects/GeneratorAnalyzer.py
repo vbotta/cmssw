@@ -80,7 +80,7 @@ class GeneratorAnalyzer( Analyzer ):
             elif id == 15:
                 if moid in [22,23,24]:
                     event.gentaus.append(dau)
-                self.fillGenLeptons(event, dau, True, sourceId)
+                self.fillGenLeptons(event, dau, True, sourceId) 
             elif id in [22,23,24]:
                 self.fillGenLeptons(event, dau, False, sourceId)
 
@@ -164,8 +164,8 @@ class GeneratorAnalyzer( Analyzer ):
 
         event.genvbosons = [ p for p in event.genParticles if abs(p.pdgId()) in [23,24] and p.numberOfDaughters()>0 and abs(p.daughter(0).pdgId()) != abs(p.pdgId()) and p.mass() > 30 ]
  		   
-        bosons = [ gp for gp in event.genParticles if gp.status() > 2 and  abs(gp.pdgId()) in [22,23,24]  ]
-    	for b in bosons:
+        #bosons = [ gp for gp in event.genParticles if gp.status() > 2 and  abs(gp.pdgId()) in [22,23,24]  ]
+    	for b in event.genvbosons:
         	if b.numberOfDaughters()>0 :
                 	self.fillGenLeptons(event, b, sourceId=abs(b.pdgId())) #selezione su leptoni fatta dentro la funzione stessa
                 	self.fillWZQuarks(event, b, isWZ=True, sourceId=abs(b.pdgId()))
