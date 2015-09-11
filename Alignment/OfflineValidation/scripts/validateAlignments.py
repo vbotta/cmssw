@@ -256,7 +256,6 @@ def createExtendedValidationScript(offlineValidationList, outFilePath, resultPlo
         repMap[ "extendedInstantiation" ] = validation.appendToExtendedValidation( repMap[ "extendedInstantiation" ] )
 
     theFile = open( outFilePath, "w" )
-    # theFile.write( replaceByMap( configTemplates.extendedValidationTemplate ,repMap ) )
     theFile.write( replaceByMap( configTemplates.extendedValidationTemplate ,repMap ) )
     theFile.close()
     
@@ -269,7 +268,6 @@ def createTrackSplitPlotScript(trackSplittingValidationList, outFilePath):
         repMap[ "trackSplitPlotInstantiation" ] = validation.appendToExtendedValidation( repMap[ "trackSplitPlotInstantiation" ] )
     
     theFile = open( outFilePath, "w" )
-    # theFile.write( replaceByMap( configTemplates.trackSplitPlotTemplate ,repMap ) )
     theFile.write( replaceByMap( configTemplates.trackSplitPlotTemplate ,repMap ) )
     theFile.close()
 
@@ -287,6 +285,18 @@ def createPrimaryVertexPlotScript(PrimaryVertexValidationList, outFilePath):
     theFile.write( replaceByMap( configTemplates.PrimaryVertexPlotTemplate ,repMap ) )
     theFile.close()
 
+def createMergeZmumuPlotsScript(zMuMuValidationList, outFilePath):
+    repMap = zMuMuValidationList[0].getRepMap() # bit ugly since some special features are filled
+    repMap[ "CMSSW_BASE" ] = os.environ['CMSSW_BASE']
+    repMap[ "mergeZmumuPlotsInstantiation" ] = "" #give it a "" at first in order to get the initialisation back
+
+    for validation in zMuMuValidationList:
+        repMap[ "mergeZmumuPlotsInstantiation" ] = validation.appendToExtendedValidation( repMap[ "mergeZmumuPlotsInstantiation" ] )
+
+    theFile = open( outFilePath, "w" )
+    theFile.write( replaceByMap( configTemplates.mergeZmumuPlotsTemplate ,repMap ) )
+    theFile.close()
+
 def createMergeScript( path, validations ):
     if(len(validations) == 0):
         raise AllInOneError("Cowardly refusing to merge nothing!")
@@ -298,6 +308,7 @@ def createMergeScript( path, validations ):
             "RunExtendedOfflineValidation":"",
             "RunTrackSplitPlot":"",
             "RunPrimaryVertexPlot":"",
+            "MergeZmumuPlots":"",
             "CMSSW_BASE": os.environ["CMSSW_BASE"],
             "SCRAM_ARCH": os.environ["SCRAM_ARCH"],
             "CMSSW_RELEASE_BASE": os.environ["CMSSW_RELEASE_BASE"],
@@ -380,6 +391,14 @@ def createMergeScript( path, validations ):
                                        repMap["trackSplitPlotScriptPath"] )
         repMap["RunTrackSplitPlot"] = \
             replaceByMap(configTemplates.trackSplitPlotExecution, repMap)
+
+    if "ZMuMuValidation" in comparisonLists:
+        repMap["mergeZmumuPlotsScriptPath"] = \
+            os.path.join(path, "TkAlMergeZmumuPlots.C")
+        createMergeZmumuPlotsScript(comparisonLists["ZMuMuValidation"],
+                                       repMap["mergeZmumuPlotsScriptPath"] )
+        repMap["MergeZmumuPlots"] = \
+            replaceByMap(configTemplates.mergeZmumuPlotsExecution, repMap)
 
     if "PrimaryVertexValidation" in comparisonLists:
         repMap["PrimaryVertexPlotScriptPath"] = \
