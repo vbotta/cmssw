@@ -1,8 +1,8 @@
+#!/usr/bin/env python
 import subprocess
 import re
 import os
-import mpslib.Mpslibclass as mpslib
-#from mpslib.Mpslib import read_db, write_db
+import Alignment.MillePedeAlignmentAlgorithm.mpslib.Mpslibclass as mpslib
 
 lib = mpslib.jobdatabase()
 lib.read_db()
