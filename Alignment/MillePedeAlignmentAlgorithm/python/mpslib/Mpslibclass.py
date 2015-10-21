@@ -52,6 +52,8 @@ class jobdatabase:
 	
 	updateTime, elapsedTime, pedeMem , nJobs = -1, -1, -1, -1
 	
+	#-------------------------------------------------------------------------------
+	# parses the mps.db file into the member variables and arrays
 	def read_db(self):
 		DBFILE = open('mps.db','r')
 
@@ -82,7 +84,7 @@ class jobdatabase:
 		for line in DBFILE:
 			line = line.rstrip('\n')		#removes the pesky \n from line
 			parts = line.split(":")			#read each line and split into parts list
-			self.JOBNUMBER.append(parts[0])
+			self.JOBNUMBER.append(int(parts[0]))
 			self.JOBDIR.append(parts[1])
 			self.JOBID.append(int(parts[2]))
 			self.JOBSTATUS.append(parts[3])
@@ -107,6 +109,7 @@ class jobdatabase:
 
 
 	#-------------------------------------------------------------------------------
+	# prints the member varaiables and arrays to the terminal 
 	def print_memdb(self):
 		#print metainfo	
 		print "\n=== mps database printout ===\n"	
@@ -125,31 +128,33 @@ class jobdatabase:
 		print 'pedeMem:\t',		self.pedeMem, '\n'
 
 		#print interesting Job-level lists ---- to add: t/evt, fix remarks
-		print '###\tdir\tjobid\t\tstat\ttry\trtime\tnevt\tremark\tname'
+		print '###     dir      jobid    stat  try  rtime      nevt  remark    name'
 		print "------------------------------------------------------------------------------"
-		for row in zip( self.JOBNUMBER[:self.nJobs], 
-				self.JOBDIR[:self.nJobs],
-				map(str,self.JOBID[:self.nJobs]),
-				self.JOBSTATUS[:self.nJobs],
-				map(str,self.JOBNTRY[:self.nJobs]),
-				map(str,self.JOBRUNTIME[:self.nJobs]),
-				map(str,self.JOBNEVT[:self.nJobs]),
-				self.JOBHOST[:self.nJobs],
-				self.JOBSP3[:self.nJobs]):
-			print '\t'.join(row)
+		for i in xrange(self.nJobs):
+			print '%03d  %6s  %9d  %6s  %3d  %5d  %8d  %8s  %s' % ( 
+			                 self.JOBNUMBER[i],
+			                 self.JOBDIR[i],
+			                 self.JOBID[i],
+			                 self.JOBSTATUS[i],
+			                 self.JOBNTRY[i],
+			                 self.JOBRUNTIME[i],
+			                 self.JOBNEVT[i],
+			                 self.JOBHOST[i],
+			                 self.JOBSP3[i])
 
 		#print merge Jobs if merge mode	
 		if self.driver == 'merge':
-			for row in zip( self.JOBNUMBER[self.nJobs:],
-					self.JOBDIR[self.nJobs:],
-					map(str,self.JOBID[self.nJobs:]),
-					self.JOBSTATUS[self.nJobs:],
-					map(str,self.JOBNTRY[self.nJobs:]),
-					map(str,self.JOBRUNTIME[self.nJobs:]),
-					map(str,self.JOBNEVT[self.nJobs:]),
-					self.JOBHOST[self.nJobs:],
-					self.JOBSP3[self.nJobs:]):
-				print '\t'.join(row)
+			for i in xrange(self.nJobs,len(self.JOBDIR)):
+				print '%s  %6s  %9d  %6s  %3d  %5d  %8d  %8s  %s' % ( 
+				             'MMM',
+				             self.JOBDIR[i],
+				             self.JOBID[i],
+				             self.JOBSTATUS[i],
+				             self.JOBNTRY[i],
+				             self.JOBRUNTIME[i],
+				             self.JOBNEVT[i],
+				             self.JOBHOST[i],
+				             self.JOBSP3[i])
 
 		#print summed info
 		totalEvents = sum(self.JOBNEVT[:self.nJobs])
@@ -157,7 +162,7 @@ class jobdatabase:
 		meanCpuPerEvent = 0.
 		if totalEvents > 0:
 			meanCpuPerEvent = float(totalCpu)/totalEvents
-		print "------------------------------------------------------------------------------"	
+		print "------------------------------------------------------------------------------"
 		print "\t\t\t\t\tEvent total:\t",	totalEvents
 		print "\t\t\t\t\tCPU total:\t",		totalCpu,		's'
 		print "\t\t\t\t\tMean CPU/event:\t",meanCpuPerEvent,'s'
@@ -167,7 +172,7 @@ class jobdatabase:
 
 
 	#-------------------------------------------------------------------------------
-	#used by: check, disablejob, enablejob, fetch, fire, kill, retry, setup, setupm, update, weight
+	# writes a new mps.db file from the members. Replaces the old mps.db
 	def write_db(self):
 		self.header = "mps database schema 3.2"
 		self.currentTime = int(time.time())
@@ -210,7 +215,27 @@ class jobdatabase:
 			              self.JOBSP2[i],
 			              self.JOBSP3[i]))
 		DBFILE.close()
-
+	
+	#-------------------------------------------------------------------------------
+	# returns job class as stored in db
+	# one and only argument may be "mille" or "pede" for mille or pede jobs
+	def get_class(self, argument=''):
+		CLASSES = self.classInf.split(':')
+		if len(CLASSES)<1 or len(CLASSES)>2:
+			print '\nget_class():\n  class must be of the form \'class\' or \'classMille:classPede\', but is \'%s\'!\n\n', classInf
+			exit()
+			return ''
+		elif argument == 'mille':
+			return CLASSES[0]
+		elif argument == 'pede':
+			if len(CLASSES) == 1:
+				return CLASSES[0]
+			elif len(CLASSES) == 2:
+				return CLASSES[1]
+		else:
+			print '\nget_class():\n  Know class only for \'mille\' or \'pede\', not %s!\n\n' %argument
+		exit()	#???????????????
+		return ''
 		
 		
 		
