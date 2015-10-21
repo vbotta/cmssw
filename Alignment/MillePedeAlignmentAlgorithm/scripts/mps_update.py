@@ -49,7 +49,7 @@ if submittedjobs > 0:
 			#extract jobID		
 			match = re.search('Job<(\d+?)>,', line)
 			if match:
-				jobid = match.group(1)
+				jobid = match.group(1)		# FIXME match.group(0)???????????????????
 			#extract job status			
 			match = re.search('Status<([A-Z]+?)>', line)
 			if match:
@@ -131,4 +131,3 @@ for i in xrange(len(lib.JOBID)):
 
 
 lib.write_db()
-
