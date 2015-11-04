@@ -6,7 +6,7 @@
 #  to be copied from a spool area.
 #  On LSF batch, the job output is already in our directories,
 #  hence this function does hardly anything except for calling 
-#  mps_check.pl.
+#  mps_check.py.
 
 import Alignment.MillePedeAlignmentAlgorithm.mpslib.Mpslibclass as mpslib
 import os
@@ -34,6 +34,6 @@ for i in xrange(len(lib.JOBID)):
 			
 lib.write_db()
 
-# call mps_check FIXME change to .py when done
-os.system('mps_check.pl')
+# call mps_check
+os.system('mps_check.py')
 		
