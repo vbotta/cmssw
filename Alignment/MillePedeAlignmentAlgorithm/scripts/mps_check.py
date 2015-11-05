@@ -21,7 +21,9 @@ lib.read_db()
 
 # create a list of eos ls entries containing files on eos
 # previously 'cmsLs -l $mssDir' -> deprecated command. Removed in January 2016
-command = 'eos ls -l '+lib.mssDir
+# the simple command "eos ls -l" doesn't work. Exact location of application must be specified.
+eos = '/afs/cern.ch/project/eos/installation/cms/bin/eos.select'
+command = eos+' ls -l '+lib.mssDir
 eoslsoutput = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True).split('\n')
 
 # loop over FETCH jobs
@@ -66,6 +68,10 @@ for i in xrange(len(lib.JOBID)):
 		
 		# open the STDOUT file
 		stdOut = 'jobData/'+lib.JOBDIR[i]+'/STDOUT'
+		# unzip the STDOUT file if necessary
+		if os.access(stdOut+'.gz', os.R_OK):
+			os.system('gunzip '+stdOut+'.gz')
+		
 		STDFILE = open(stdOut,'r')
 		# scan records in input file.
 		# use regular expression to search. re.compile needed for options re.M and re.I
@@ -103,7 +109,7 @@ for i in xrange(len(lib.JOBID)):
 		
 		# gzip it afterwards:
 		print 'gzip -f '+stdOut
-		os.system('gzip -f '+stdOut)
+		os.system('gzip -f '+stdOut)		
 		
 		# GF: This file is not produced (anymore...) -> check for existence and read-access added
 		eazeLog = 'jobData/'+lib.JOBDIR[i]+'/cmsRun.out'
@@ -136,7 +142,7 @@ for i in xrange(len(lib.JOBID)):
 		logZipped = 'no'
 		# unzip the logfile if necessary
 		if os.access(eazeLog+'.gz', os.R_OK):
-			os.sytem('gunzip '+eazeLog+'.gz')
+			os.system('gunzip '+eazeLog+'.gz')
 			logZipped = 'true'
 		
 		if os.access(eazeLog, os.R_OK):   # access to alignment.log
@@ -170,15 +176,15 @@ for i in xrange(len(lib.JOBID)):
 				if re.search(re.compile('AlignmentProducer::endOfJob\(\)',re.M), line):
 					endofjob = 1
 				if re.search(re.compile('FwkReport            -i main_input:sourc',re.M), line):
-					array = line.split(' ')
-					nEvent = array[5]
+					array = line.split()
+					nEvent = int(array[5])
 				if nEvent==0 and re.search(re.compile('FwkReport            -i PostSource',re.M), line):
-					array = line.split(' ')
-					nEvent = array[5]
+					array = line.split()
+					nEvent = int(array[5])
 				# AP 31.07.2009 - To read number of events in CMSSW_3_2_2_patch2
 				if nEvent==0 and re.search(re.compile('FwkReport            -i AfterSource',re.M), line):
-					array = line.split(' ')
-					nEvent = array[5]
+					array = line.split()
+					nEvent = int(array[5])
 			INFILE.close()
 			
 			if logZipped == 'true':
