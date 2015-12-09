@@ -9,7 +9,7 @@
 #  -> check millepede.log
 #  -> check millepede.end
 #
-#  It also retirieves number of events and cputime (->STDOUT) from logs
+#  It also retirieves number of events from alignment.log and cputime from STDOUT
 
 import Alignment.MillePedeAlignmentAlgorithm.mpslib.Mpslibclass as mpslib
 import subprocess
@@ -99,12 +99,14 @@ for i in xrange(len(lib.JOBID)):
 			# AP 26.11.2009 Insufficient privileges to rfcp files
 			if re.search(re.compile('stage_put: Insufficient user privileges',re.M), line):
 				insuffPriv = 1
-			
-			match = re.search(re.compile('This job used .+?(\d+) NCU seconds',re.M|re.I), line)
+			# AP 05.11.2015 Extract cpu-time.
+			# STDOUT doesn't contain NCU anymore. Now KSI2K and HS06 seconds are displayed. 
+			# The ncuFactor is calculated from few samples by comparing KSI2K seconds with 
+			# CPU time from email.
+			match = re.search(re.compile('This process used .+?(\d+) KSI2K seconds',re.M|re.I), line)
 			if match:
-				ncuFactor = 3. # this factor is most probably out-of-date...
-				cputime = match.group(1)/ncuFactor # match.group(1) is the matched digit
-				##print "Set cpu to cputime
+				cpuFactor = 2.125
+				cputime = int(round(int(match.group(1))/cpuFactor)) # match.group(1) is the matched digit
 		STDFILE.close()
 		
 		# gzip it afterwards:
@@ -412,6 +414,7 @@ for i in xrange(len(lib.JOBID)):
 		# udate Jobstatus
 		lib.JOBSTATUS[i] = disabled+okStatus
 		# update cputime
+		print cputime
 		lib.JOBRUNTIME[i] = cputime
 		# update remark
 		lib.JOBREMARK[i] = remark
