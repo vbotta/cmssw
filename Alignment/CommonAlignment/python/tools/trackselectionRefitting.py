@@ -328,3 +328,4 @@ def _customSetattr(obj, attr, val):
     else:
         if type(attr) is tuple: attr = attr[0]
         setattr(obj, attr, val)
+
