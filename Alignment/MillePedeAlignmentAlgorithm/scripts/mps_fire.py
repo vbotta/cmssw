@@ -156,7 +156,7 @@ else:
 				if not os.path.isfile(backupScriptPath):
 					os.system('cp -p '+scriptPath+' '+backupScriptPath)
 				
-				# get the name of merge cfg file FIXME check this command
+				# get the name of merge cfg file -> either the.py or alignment_merge.py
 				command  = 'cat '+backupScriptPath+' | grep cmsRun | grep "\.py" | head -1 | awk \'{gsub("^.*cmsRun ","");print $1}\''
 				mergeCfg = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
 				command  = 'basename '+mergeCfg 
