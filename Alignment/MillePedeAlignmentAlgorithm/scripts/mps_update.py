@@ -43,7 +43,7 @@ if submittedjobs > 0:
 		bjobs = bjobs.replace(' ','')
 		results = bjobs.split('-----------------------------------------------------------------------------------')
 		#print('\n\n'.join(results))
-
+		print results
 		for line in results:
 			line.strip()		#might be unnecessary
 			#extract jobID		
