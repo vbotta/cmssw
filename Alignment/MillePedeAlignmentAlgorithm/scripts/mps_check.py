@@ -240,19 +240,16 @@ for i in xrange(len(lib.JOBID)):
 						if re.search(re.compile('^\d+\.\d+$',re.M), mem):
 							usedPedeMem = float(mem)
 						else:
-							print 'mps_check.py: Found Pede peak memory allocation but extracted \
-							number is not a float:',mem
+							print 'mps_check.py: Found Pede peak memory allocation but extracted number is not a float:',mem
 				
 				# check memory usage
 				# no point in asking if lib.pedeMem is defined. Initialized as lib.pedeMem=-1
 				if lib.pedeMem > 0 and usedPedeMem > 0.:
-					memoryratio = usedPedeMem /(pedeMem/1024.)
+					memoryratio = usedPedeMem /(lib.pedeMem/1024.)
 					# print a warning if more than approx. 4 GB have been 
 					# requested of which less than 75% are used by Pede
 					if lib.pedeMem > 4000 and memoryratio < 75. :
-						print 'Warning:',round(pedeMem / 1024.,2),'GB of memory for Pede requested \
-						but only',round(memoryratio,1),'\% of it has been used! Consider to request \
-						less memory in order to save resources.'
+						print 'Warning:',round(lib.pedeMem / 1024.,2),'GB of memory for Pede requested, but only',round(memoryratio,1),'\% of it has been used! Consider to request less memory in order to save resources.'
 				
 				# clean up /tmp/pede.dump if needed
 				if eazeLog == '/tmp/pede.dump':
@@ -266,7 +263,7 @@ for i in xrange(len(lib.JOBID)):
 			eazeLog = 'jobData/'+lib.JOBDIR[i]+'/millepede.log'
 			logZipped = 'no'
 			if os.access(eazeLog+'.gz', os.R_OK):
-				os.system('gunzip'+eazeLog+'.gz')
+				os.system('gunzip '+eazeLog+'.gz')
 				logZipped = 'true'
 			
 			if os.access(eazeLog, os.R_OK):
