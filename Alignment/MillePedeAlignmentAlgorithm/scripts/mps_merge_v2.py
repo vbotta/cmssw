@@ -24,6 +24,8 @@ parser = argparse.ArgumentParser(description='Produce Config for Pede-job from M
 # optional arguments
 parser.add_argument('-c', '--checkok',   action='store_true', 
                     help = 'check which jobs are OK and write just them to the config')
+parser.add_argument('-w', '--checkweight',   action='store_true', 
+                    help = 'check for weight assignments in mps.db and add them to binarylist')
 
 # positional arguments
 parser.add_argument('inCfg',    action='store',
@@ -37,13 +39,14 @@ parser.add_argument('nJobs'   , action='store', type=int,
 
 # parse arguments
 args = parser.parse_args()
-inCfg    = args.inCfg
-mergeCfg = args.mergeCfg
-mergeDir = args.mergeDir
-nJobs    = args.nJobs
-checkok  = args.checkok
+inCfg       = args.inCfg
+mergeCfg    = args.mergeCfg
+mergeDir    = args.mergeDir
+nJobs       = args.nJobs
+checkok     = args.checkok
+checkweight = args.checkweight
 
-if checkok:
+if checkok or checkweight:
 	lib.read_db()
 
 ## create merge config
@@ -80,7 +83,7 @@ for i in xrange(nJobs):
 	firstentry = False
 	
 	newName = 'milleBinary%03d.dat' % (i+1)
-	if checkok and lib.JOBSP2[i]!='':
+	if checkweight and (lib.JOBSP2[i]!='' and lib.JOBSP2[i]!='1.0'):
 		weight = lib.JOBSP2[i]
 		print 'Adding %s to list of binary files using weight %s' % (newName,weight)
 		binaryList = '%s%s\'%s -- %s\'' % (binaryList, separator, newName, weight)

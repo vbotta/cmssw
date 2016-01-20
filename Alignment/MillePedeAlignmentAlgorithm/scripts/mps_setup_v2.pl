@@ -350,6 +350,8 @@ push @JOBSP1,"";
 push @JOBSP2,"";
 push @JOBSP3,"";
 
+write_db();
+
 # if merge mode, create the directory and set up contents
 if ($driver eq "merge") {
 
@@ -361,8 +363,8 @@ if ($driver eq "merge") {
   my $nJobsMerge = $nJobs+$nJobExist;
 
   # create  merge job cfg
-  print "mps_merge_v2.py $cfgTemplate jobData/jobm/alignment_merge.py $theJobData/jobm $nJobsMerge\n";
-  system "mps_merge_v2.py $cfgTemplate jobData/jobm/alignment_merge.py $theJobData/jobm $nJobsMerge";
+  print "mps_merge_v2.py -w $cfgTemplate jobData/jobm/alignment_merge.py $theJobData/jobm $nJobsMerge\n";
+  system "mps_merge_v2.py -w $cfgTemplate jobData/jobm/alignment_merge.py $theJobData/jobm $nJobsMerge";
 
   # create merge job script
   print "mps_scriptm.pl $mergeScript jobData/jobm/theScript.sh $theJobData/jobm alignment_merge.py $nJobsMerge $mssDir $mssDirPool\n";

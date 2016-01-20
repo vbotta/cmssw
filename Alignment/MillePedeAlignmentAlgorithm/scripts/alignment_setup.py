@@ -95,6 +95,10 @@ for section in config.sections():
 			if config.has_option(section,'primaryWidth'):
 				primaryWidth = config.getfloat(section,'primaryWidth')
 
+			weight = '1.0'
+			if config.has_option(section,'weight'):
+				weight = config.get(section,'weight')
+			
 			# replace '${datasetdir}' in inputFileList
 			inputFileList = re.sub('\${datasetdir}', datasetdir, inputFileList)
 			
@@ -142,10 +146,11 @@ for section in config.sections():
 				firstDataset = False
 			
 			# call mps_setup
-			command = 'mps_setup_v2.pl -m%s -M %d -N %s %s %s %s %d %s %s %s cmscafuser:%s' % (
+			command = 'mps_setup_v2.pl -m%s -M %d -N %s -w %s %s %s %s %d %s %s %s cmscafuser:%s' % (
 			          append, 
 			          pedeMem, 
-			          name, 
+			          name,
+			          weight, 
 			          milleScript,
 			          thisCfgTemplate, 
 			          inputFileList, 
