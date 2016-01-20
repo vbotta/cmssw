@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import re
 import argparse
-
+import math
+import fileinput
 
 # Set up argrument parser
 helpEpilog = ''''''
@@ -17,7 +18,7 @@ parser.add_argument('modCfg', action='store',
 parser.add_argument('outCfg', action='store',
                     help='name of modified output file')
 parser.add_argument('isn', action='store',
-                    help='number of the job')
+                    help='number of the job (three digit number with leading zeros)')
 
 # Parse arguments
 args = parser.parse_args()
@@ -36,24 +37,10 @@ with open(modCfg, 'r') as MODFILE:
 	mods = MODFILE.read()
 mods = mods.strip()
 
-# prepare the new fileNames directive
+# prepare the new fileNames directive. Delete first line if necessary.
 fileNames = mods.split('\n')
 if 'CastorPool=' in fileNames[0]:
 	del fileNames[0]
-
-# prepare list of fileNames as string
-replaceBlock = "\n                "
-numberOfFiles = len(fileNames)
-for i in range(numberOfFiles):
-	entry = fileNames[i].strip()
-	
-	if (i+1) < (numberOfFiles):
-	    replaceBlock += "\'"+entry+"\',\n                "
-	else:
-		replaceBlock += "\'"+entry+"\'"
-
-# replace the placeholder
-body = re.sub('[\"\']placeholder_readFiles[\"\']', replaceBlock, body)
 
 # replace ISN number (input is a string of three digit number with leading zeros though)
 body = re.sub(re.compile('ISN',re.M), isn, body)
@@ -61,6 +48,31 @@ body = re.sub(re.compile('ISN',re.M), isn, body)
 # print to outCfg
 with open(outCfg, 'w') as OUTFILE:
 	OUTFILE.write(body)
+
+# Number of total files and number of extends for cms.vstring are needed
+numberOfFiles   = len(fileNames)
+numberOfExtends = int(math.ceil(numberOfFiles/255.))
+
+# Create and insert the readFile.extend lines
+for j in xrange(numberOfExtends):
+	insertBlock = "readFiles.extend([\n    "	
+	i=0
+	currentStart = j*255
+	while (i<255) and ((currentStart+i)<numberOfFiles):
+		entry = fileNames[currentStart+i].strip()
+		if (i==254) or ((currentStart+i+1)==numberOfFiles):
+		    insertBlock += "\'"+entry+"\'])\n"
+		else:
+			insertBlock += "\'"+entry+"\',\n    "
+		i+=1
+	
+	for line in fileinput.input(outCfg, inplace=1):
+		if re.match('readFiles\s*=\s*cms.untracked.vstring()',line):
+			print line,
+			print insertBlock,
+		else:
+			print line,
+
 
 
 
