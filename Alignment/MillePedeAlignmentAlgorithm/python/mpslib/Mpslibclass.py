@@ -128,10 +128,10 @@ class jobdatabase:
 		print 'pedeMem:\t',		self.pedeMem, '\n'
 
 		#print interesting Job-level lists ---- to add: t/evt, fix remarks
-		print '###     dir      jobid    stat  try  rtime      nevt  remark    name'
+		print '###     dir      jobid    stat  try  rtime      nevt  remark   weight  name'
 		print "------------------------------------------------------------------------------"
 		for i in xrange(self.nJobs):
-			print '%03d  %6s  %9d  %6s  %3d  %5d  %8d  %8s  %s' % ( 
+			print '%03d  %6s  %9d  %6s  %3d  %5d  %8d  %8s  %5s  %s' % ( 
 			                 self.JOBNUMBER[i],
 			                 self.JOBDIR[i],
 			                 self.JOBID[i],
@@ -140,12 +140,13 @@ class jobdatabase:
 			                 self.JOBRUNTIME[i],
 			                 self.JOBNEVT[i],
 			                 self.JOBHOST[i],
+			                 self.JOBSP2[i],
 			                 self.JOBSP3[i])
 
 		#print merge Jobs if merge mode	
 		if self.driver == 'merge':
 			for i in xrange(self.nJobs,len(self.JOBDIR)):
-				print '%s  %6s  %9d  %6s  %3d  %5d  %8d  %8s  %s' % ( 
+				print '%s  %6s  %9d  %6s  %3d  %5d  %8d  %8s  %5s  %s' % ( 
 				             'MMM',
 				             self.JOBDIR[i],
 				             self.JOBID[i],
@@ -154,6 +155,7 @@ class jobdatabase:
 				             self.JOBRUNTIME[i],
 				             self.JOBNEVT[i],
 				             self.JOBHOST[i],
+				             self.JOBSP2[i],
 				             self.JOBSP3[i])
 
 		#print summed info
