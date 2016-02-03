@@ -24,9 +24,6 @@
 ##        AlgoMode specifies mode of AlignmentProducer.algoConfig -> mille or pede
 ##        mille is default. Pede mode is automatically set when merge config is created by MPS
 ##
-##        HighPurity toggles usage of a High-Purity-Trackselector. 
-##        Usual for all Tracktypes except Cosmics.
-##        
 ##        CosmicsDecoMode and CosmicsZeroTesla are only relevant if collection 
 ##        is ALCARECOTkAlCosmicsCTF0T
 ##
@@ -43,7 +40,6 @@ process = cms.Process("Alignment")
 ## -----------------------------------------------------------------------------
 setupGlobaltag        = "placeholder_globaltag"
 setupCollection       = "placeholder_collection"
-setupHighPurity       = False
 setupCosmicsDecoMode  = False
 setupCosmicsZeroTesla = False
 setupPrimaryWidth     = -1.0
@@ -114,17 +110,6 @@ confAliProducer.setConfiguration(process,
 #########################
 ## insert Pedesettings ## 
 #########################
-
-
-## Use HighPuritySelector
-## -----------------------------------------------------------------------------
-if setupHighPurity:
-    import Alignment.CommonAlignmentProducer.AlignmentTrackSelector_cfi
-    process.HighPuritySelector = Alignment.CommonAlignmentProducer.AlignmentTrackSelector_cfi.AlignmentTrackSelector.clone(
-        applyBasicCuts  = True,
-        src             = setupCollection,
-        trackQualities  = ["highPurity"],
-        pMin            = 8.)
 
 
 ## Mille-procedure
