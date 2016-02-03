@@ -169,12 +169,13 @@ else:
 				if not os.path.isfile(backupCfgPath):
 					os.system('cp -p '+cfgPath+' '+backupCfgPath)
 				
-				# rewrite the mergeCfg using only 'OK' jobs FIXME substitute pl->py when done
-				command ='mps_merge.pl -c '+backupCfgPath+' '+Path+'/'+mergeCfg+' '+Path+' '+lib.nJobs
+				# rewrite the mergeCfg using only 'OK' jobs
+				inCfgPath = theJobData+'/'+lib.JOBDIR[-1]+'/the.py'
+				command ='mps_merge_v2.py -c '+inCfgPath+' '+Path+'/'+mergeCfg+' '+Path+' '+str(lib.nJobs)
 				os.system(command)
 				
-				# rewrite theScript.sh using inly 'OK' jobs FIXME substitute pl->py when done
-				command = 'mps_scriptm.pl -c '+lib.mergeScript+' '+scriptPath+' '+Path+' '+mergeCfg+' '+lib.nJobs+' '+lib.mssDir+' '+mssDirPool
+				# rewrite theScript.sh using inly 'OK' jobs
+				command = 'mps_scriptm.pl -c '+lib.mergeScript+' '+scriptPath+' '+Path+' '+mergeCfg+' '+str(lib.nJobs)+' '+lib.mssDir+' '+lib.mssDirPool
 				os.system(command)
 			
 			else:
@@ -182,7 +183,7 @@ else:
 				if os.path.isfile(backupScriptPath):
 					os.system('cp -pf '+backupScriptPath+' '+scriptPath)
 				
-				# get the name of merge cfg file FIXME check this command
+				# get the name of merge cfg file
 				command  = 'cat '+scriptPath+' | grep cmsRun | grep "\.py" | head -1 | awk \'{gsub("^.*cmsRun ","");print $1}\''
 				mergeCfg = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
 				command  = 'basename '+mergeCfg
