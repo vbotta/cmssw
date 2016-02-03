@@ -41,15 +41,16 @@ if submittedjobs > 0:
 
 	if bjobs != 'No unfinished job found':	
 		bjobs = bjobs.replace(' ','')
-		results = bjobs.split('-----------------------------------------------------------------------------------')
+		results = bjobs.split('-----------------------')
 		#print('\n\n'.join(results))
-		print results
+		#print results
 		for line in results:
 			line.strip()		#might be unnecessary
+			print line
 			#extract jobID		
 			match = re.search('Job<(\d+?)>,', line)
 			if match:
-				jobid = match.group(1)		# FIXME match.group(0)???????????????????
+				jobid = int(match.group(1))		# FIXME match.group(0)???????????????????
 			#extract job status			
 			match = re.search('Status<([A-Z]+?)>', line)
 			if match:
@@ -67,8 +68,8 @@ if submittedjobs > 0:
 			for k in xrange(len(lib.JOBID)):
 				if jobid == lib.JOBID[k]:
 					theIndex = k
-				if 'DISABLED' in lib.JOBSTATUS[k]:
-					disabled = 'DISABLED'
+			if 'DISABLED' in lib.JOBSTATUS[theIndex]:
+				disabled = 'DISABLED'
 
 			#continue with next batch job if not found or not interesting
 			if theIndex == -1:
@@ -78,7 +79,7 @@ if submittedjobs > 0:
 				continue
 
 			#if deemed interesting (FLAG = -1) update Joblists for mps.db
-			lib.JOBSTATUS[theIndex] = disabled+jobstatus
+			lib.JOBSTATUS[theIndex] = disabled+status
 			if status == 'RUN' or status == 'DONE':
 				if cputime > 0:
 					diff = cputime - lib.JOBRUNTIME[theIndex]
@@ -89,7 +90,7 @@ if submittedjobs > 0:
 					lib.JOBRUNTIME[theIndex] = 0
 					lib.JOBINCR[theIndex] = 0
 			FLAG[theIndex] = 1;
-			print 'set flag of job $theIndex with id ', JOBID[theIndex], ' to 1'
+			print 'set flag of job', theIndex, 'with id', lib.JOBID[theIndex], 'to 1'
 
 
 
