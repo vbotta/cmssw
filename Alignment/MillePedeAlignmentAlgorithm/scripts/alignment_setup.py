@@ -49,6 +49,10 @@ else:
 # set directory on eos
 mssDir = '/store/caf/user/'+os.environ['USER']+'/MPproduction/'+mpsdirname
 
+# create directory on eos if it doesn't exist already
+eos = '/afs/cern.ch/project/eos/installation/cms/bin/eos.select'
+os.system(eos+' mkdir -p '+mssDir)
+
 # parse config file
 config = ConfigParser.ConfigParser()
 config.read(aligmentConfig)
@@ -73,11 +77,7 @@ for section in config.sections():
 			globaltag      = config.get(section,'globaltag')
 			collection     = config.get(section,'collection')
 			configTemplate = config.get(section,'configTemplate')
-
 			
-			primarywidth = ''
-			if config.has_option(section, 'primarywidth'):
-				primarywidth = config.get(section,'primarywidth')
 			
 			cosmicsZeroTesla = False
 			if config.has_option(section,'cosmicsZeroTesla'):
@@ -87,14 +87,10 @@ for section in config.sections():
 			if config.has_option(section,'cosmicsDecoMode'):
 				cosmicsDecoMode = config.getboolean(section,'cosmicsDecoMode')
 			
-			highPurity = False
-			if config.has_option(section,'highPurity'):
-				highPurity = config.getboolean(section,'highPurity')
-
 			primaryWidth = -1.0
 			if config.has_option(section,'primaryWidth'):
 				primaryWidth = config.getfloat(section,'primaryWidth')
-
+			
 			weight = '1.0'
 			if config.has_option(section,'weight'):
 				weight = config.get(section,'weight')
@@ -123,20 +119,16 @@ for section in config.sections():
 			if cosmicsDecoMode:
 				tmpFile = re.sub(re.compile('setupCosmicsDecoMode\s*\=\s*.*$', re.M),
 				                 'setupCosmicsDecoMode = True',
-				                 tmpFile)		
-			if highPurity:
-				tmpFile = re.sub(re.compile('setupHighPurity\s*\=\s*.*$', re.M),
-				                 'setupHighPurity = True',
-				                 tmpFile)			
+				                 tmpFile)
 			if primaryWidth > 0.0:
 				tmpFile = re.sub(re.compile('setupPrimaryWidth\s*\=\s*.*$', re.M),
-				                 'setupHighPurity = '+str(primaryWidth),
-				                 tmpFile)			
+				                 'setupPrimaryWidth = '+str(primaryWidth),
+				                 tmpFile)
 			
 			
 			with open('tmp.py', 'w') as OUTFILE:
 				OUTFILE.write(tmpFile)
-			thisCfgTemplate = 'tmp.py'			
+			thisCfgTemplate = 'tmp.py'
 			
 			
 			# Set mps_setup append option for datasets following the first one
