@@ -100,6 +100,7 @@ firstDataset = True
 for section in config.sections():
 	if 'general' in section:
 		continue
+	# TODO change "else" to "if 'dataset' in section:" when adding new section-types (e.g. conditions)
 	else:
 		datasetOptions={}
 		print '---------------------------------------------------------------'
