@@ -169,8 +169,8 @@ else:
 				if not os.path.isfile(backupCfgPath):
 					os.system('cp -p '+cfgPath+' '+backupCfgPath)
 				
-				# rewrite the mergeCfg using only 'OK' jobs
-				inCfgPath = theJobData+'/'+lib.JOBDIR[-1]+'/the.py'
+				# rewrite the mergeCfg using only 'OK' jobs (uses last mille-job as baseconfig)
+				inCfgPath = theJobData+'/'+lib.JOBDIR[lib.nJobs]+'/the.py'
 				command ='mps_merge_v2.py -c '+inCfgPath+' '+Path+'/'+mergeCfg+' '+Path+' '+str(lib.nJobs)
 				os.system(command)
 				
