@@ -114,7 +114,10 @@ confAliProducer.setConfiguration(process,
 
 ## Mille-procedure
 ## -----------------------------------------------------------------------------
-if setupAlgoMode is "mille":
+if setupAlgoMode == "mille":
+    
+    # no database output in the mille step
+    process.AlignmentProducer.saveDeformationsToDB = False
     
     ## Track selection and refitting
     ## -----------------------------------------------------------------------------
