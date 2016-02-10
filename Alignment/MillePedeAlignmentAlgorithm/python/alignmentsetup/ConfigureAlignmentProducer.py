@@ -19,7 +19,7 @@ def setConfiguration(process, collection, mode, monitorFile, binaryFile, primary
 	process.AlignmentProducer.algoConfig.mode              = mode
 	process.AlignmentProducer.algoConfig.mergeBinaryFiles  = cms.vstring()
 	
-	if mode is "mille":
+	if mode == "mille":
 	    process.AlignmentProducer.algoConfig.binaryFile   = binaryFile
 	    process.AlignmentProducer.algoConfig.monitorFile  = monitorFile
 	elif "pede" in mode:
