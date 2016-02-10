@@ -106,6 +106,9 @@ for section in config.sections():
 		
 		# set name from section-name
 		datasetOptions['name'] = str(section)
+		# remove colons and "dataset"-string for backwards compatibility
+		datasetOptions['name'] = datasetOptions['name'].replace(':','')
+		datasetOptions['name'] = datasetOptions['name'].replace('dataset','')
 		
 		# extract essential variables
 		for var in ['inputFileList','collection']:
