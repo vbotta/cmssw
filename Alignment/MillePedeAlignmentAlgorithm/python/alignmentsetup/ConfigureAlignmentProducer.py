@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-def setConfiguration(process, collection, mode, monitorFile, binaryFile, primaryWidth = 0.0):	
+def setConfiguration(process, collection, mode, monitorFile, binaryFile, primaryWidth = 0.0):
 	
 	#############
 	## general ##
@@ -17,18 +17,15 @@ def setConfiguration(process, collection, mode, monitorFile, binaryFile, primary
 	process.AlignmentProducer.algoConfig = cms.PSet(
 	    process.MillePedeAlignmentAlgorithm)
 	process.AlignmentProducer.algoConfig.mode              = mode
-	process.AlignmentProducer.algoConfig.mergeBinaryFiles  = cms.vstring()	
+	process.AlignmentProducer.algoConfig.mergeBinaryFiles  = cms.vstring()
 	
 	if mode is "mille":
 	    process.AlignmentProducer.algoConfig.binaryFile   = binaryFile
 	    process.AlignmentProducer.algoConfig.monitorFile  = monitorFile
-
-	elif mode is "pede":
+	elif "pede" in mode:
 	    process.AlignmentProducer.algoConfig.binaryFile   = ''
 	    process.AlignmentProducer.algoConfig.monitorFile  = 'millePedeMonitor_merge.root'
 	    process.AlignmentProducer.algoConfig.treeFile     = 'treeFile_merge.root'
-	
-	##elif mode is "pedeRead":
 	
 	
 	########################
@@ -47,7 +44,7 @@ def setConfiguration(process, collection, mode, monitorFile, binaryFile, primary
 		process.AlignmentProducer.algoConfig.TrajectoryFactory.UseInvalidHits = True 
 	
 	##elif collection is "ALCARECOTkAlMinBias":
-	##elif collection is "ALCARECOTkAlCosmicsCTF0T":	
+	##elif collection is "ALCARECOTkAlCosmicsCTF0T":
 	##elif collection is "ALCARECOTkAlMuonIsolated":
 	
 	else:
@@ -63,12 +60,4 @@ def setConfiguration(process, collection, mode, monitorFile, binaryFile, primary
 	
 	if primaryWidth > 0.0:
 		process.AlignmentProducer.algoConfig.TrajectoryFactory.ParticleProperties.PrimaryWidth = primaryWidth
-
-	
-	
-	
-	
-	
-	
-	
 	
