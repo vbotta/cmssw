@@ -6,7 +6,7 @@
 ##  Then calls mps_setup_v2.pl for all datasets.
 ##
 ##  Usage:
-##     alignment_setup.py myconfig.ini
+##     alignment_setup.py [-h] [-v] myconfig.ini
 ##
 
 import argparse
@@ -16,20 +16,32 @@ import subprocess
 import ConfigParser
 
 # ------------------------------------------------------------------------------
-# set up argument parser
-helpEpilog =''' '''
+# set up argument parser and config parser
+
+helpEpilog ='''Builds the config-templates from a universal config-template for each
+dataset specified in .ini-file that is passed to this script.
+Then calls mps_setup_v2.pl for all datasets.'''
 parser = argparse.ArgumentParser(description='Setup the alignment as configured in the alignment_config file.', 
                                  epilog=helpEpilog, 
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
+# optional argmuent: verbose (toggles output of mps_setup)
+parser.add_argument('-v', '--verbose',   action='store_true', help='display detailed output of mps_setup')
 # positional argument: config file
 parser.add_argument('alignmentConfig', 
                     action='store', 
-                    help = 'Name of the .ini config file for alignment.')
+                    help = 'name of the .ini config file that specifies the datasets to be used')
 # parse argument
 args = parser.parse_args()
 aligmentConfig = args.alignmentConfig
 
-# ------------------------------------------------------------------------------
+# parse config file
+config = ConfigParser.ConfigParser()
+config.read(aligmentConfig)
+
+
+
+#------------------------------------------------------------------------------
+# construct directories
 
 # set variables that are not too specific (millescript, pedescript, etc.)
 mpsScriptsDir = os.environ['CMSSW_BASE'] + '/src/Alignment/MillePedeAlignmentAlgorithm/scripts/'
@@ -53,110 +65,213 @@ mssDir = '/store/caf/user/'+os.environ['USER']+'/MPproduction/'+mpsdirname
 eos = '/afs/cern.ch/project/eos/installation/cms/bin/eos.select'
 os.system(eos+' mkdir -p '+mssDir)
 
-# parse config file
-config = ConfigParser.ConfigParser()
-config.read(aligmentConfig)
-
-# read 'general' section from config file
-classInf       = config.get('general','classInf')
-pedeMem        = config.getint('general','pedeMem')
-jobname        = config.get('general','jobname')
-datasetdir     = config.get('general','datasetdir')
 
 
-# loop over 'dataset' sections (with submit=True)
+#------------------------------------------------------------------------------
+# read general-section
+generalOptions = {}
+
+# essential variables
+for var in ['classInf','pedeMem','jobname']:
+	try:
+		generalOptions[var] = config.get('general',var)
+	except ConfigParser.NoOptionError:
+		print 'No', var, 'found in general-section. Please check ini-file.'
+		raise SystemExit
+
+# check if datasetdir is given
+generalOptions['datasetdir'] = ''
+if config.has_option('general','datasetdir'):
+	generalOptions['datasetdir'] = config.get('general','datasetdir')
+else:
+	print 'No datasetdir given in general-section. Be sure to give a full path in inputFileList.'
+
+# check for default options
+for var in ['globaltag','configTemplate','json']:
+	try:
+		generalOptions[var] = config.get('general',var)
+	except ConfigParser.NoOptionError:
+		print 'No default', var, 'given in general-section.'
+
+
+#------------------------------------------------------------------------------
+# loop over dataset-sections
 firstDataset = True
 for section in config.sections():
-	if 'dataset' in section:
-		if config.getboolean(section,'submit'):
-			
-			# extract vars from config
-			name           = config.get(section,'name')
-			inputFileList  = config.get(section,'inputFileList')
-			njobs          = config.getint(section,'njobs')
-			globaltag      = config.get(section,'globaltag')
-			collection     = config.get(section,'collection')
-			configTemplate = config.get(section,'configTemplate')
-			
-			
-			cosmicsZeroTesla = False
-			if config.has_option(section,'cosmicsZeroTesla'):
-				cosmicsZeroTesla = config.getboolean(section,'cosmicsZeroTesla')
-			
-			cosmicsDecoMode = False
-			if config.has_option(section,'cosmicsDecoMode'):
-				cosmicsDecoMode = config.getboolean(section,'cosmicsDecoMode')
-			
-			primaryWidth = -1.0
-			if config.has_option(section,'primaryWidth'):
-				primaryWidth = config.getfloat(section,'primaryWidth')
-			
-			weight = '1.0'
-			if config.has_option(section,'weight'):
-				weight = config.get(section,'weight')
-			
-			# replace '${datasetdir}' in inputFileList
-			inputFileList = re.sub('\${datasetdir}', datasetdir, inputFileList)
-			
-			# replace $CMSSW_BASE in configTemplate
-			configTemplate = re.sub('\$CMSSW_BASE', os.environ['CMSSW_BASE'], configTemplate)
-			
-			# BUILD THE CONFIG TEMPLATE FROM UNIVERSAL TEMPLATE
-			with open(configTemplate,'r') as INFILE:
+	if 'general' in section:
+		continue
+	else:
+		datasetOptions={}
+		print '---------------------------------------------------------------'
+		
+		# set name from section-name
+		datasetOptions['name'] = str(section)
+		
+		# extract essential variables
+		for var in ['inputFileList','collection']:
+			try:
+				datasetOptions[var] = config.get(section,var)
+			except ConfigParser.NoOptionError:
+				print 'No', var, 'found in', section+'. Please check ini-file.'
+				raise SystemExit
+		
+		# get globaltag and configTemplate. If none in section, try to get default from general-section.
+		for var in ['configTemplate','globaltag']:
+			if config.has_option(section,var):
+				datasetOptions[var] = config.get(section,var)
+			else:
+				try:
+					datasetOptions[var] = generalOptions[var]
+				except KeyError:
+					print 'No',var,'found in', section,' and no default in general-section.'
+					raise SystemExit
+		
+		# extract non-essential options
+		datasetOptions['cosmicsZeroTesla'] = False
+		if config.has_option(section,'cosmicsZeroTesla'):
+			datasetOptions['cosmicsZeroTesla'] = config.getboolean(section,'cosmicsZeroTesla')
+		
+		datasetOptions['cosmicsDecoMode'] = False
+		if config.has_option(section,'cosmicsDecoMode'):
+			datasetOptions['cosmicsDecoMode'] = config.getboolean(section,'cosmicsDecoMode')
+		
+		datasetOptions['primaryWidth'] = -1.0
+		if config.has_option(section,'primaryWidth'):
+			datasetOptions['primaryWidth'] = config.getfloat(section,'primaryWidth')
+		
+		datasetOptions['weight'] = '1.0'
+		if config.has_option(section,'weight'):
+			datasetOptions['weight'] = config.get(section,'weight')
+		
+		datasetOptions['json'] = ''
+		if config.has_option(section, 'json'):
+			datasetOptions['json'] = config.get(section,'json')
+		else:
+			try:
+				datasetOptions['json'] = generalOptions['json']
+			except KeyError:
+				print 'No json given in either general- or', section+'-section. Proceeding without json-file.'
+		
+		
+		# replace '${datasetdir}' in inputFileList-path
+		datasetOptions['inputFileList'] = re.sub('\${datasetdir}',
+		                                         generalOptions['datasetdir'],
+		                                         datasetOptions['inputFileList'])
+		
+		# replace $CMSSW_BASE in configTemplate-path
+		datasetOptions['configTemplate'] = re.sub('\$CMSSW_BASE',
+		                                          os.environ['CMSSW_BASE'], 
+		                                          datasetOptions['configTemplate'])
+		
+		
+		# Get number of jobs from lines in inputfilelist
+		datasetOptions['njobs'] = 0
+		try:
+			with open(datasetOptions['inputFileList'],'r') as filelist:
+				for line in filelist:
+					if 'CastorPool' in line:
+						continue
+					# ignore empty lines
+					if not line.strip()=='':
+						datasetOptions['njobs'] += 1
+		except IOError:
+			print 'Inputfilelist', datasetOptions['inputFileList'], 'does not exist.'
+			raise SystemExit
+		if datasetOptions['njobs'] == 0:
+			print 'Number of jobs is 0. There may be a Problem with the inputfilelist:'
+			print datasetOptions['inputFileList']
+			raise SystemExit
+		
+		# Check if njobs gets overwritten in .ini-file
+		if config.has_option(section,'njobs'):
+			if config.getint(section,'njobs')<datasetOptions['njobs']:
+				datasetOptions['njobs'] = config.getint(section,'njobs')
+			else:
+				print 'njobs is bigger than the default',datasetOptions['njobs'],'. Using default.'
+		else:
+			print 'No number of jobs specified. Using number of files in inputfilelist as the number of jobs.'
+		
+		
+		# Build config from template/Fill in variables
+		try:
+			with open(datasetOptions['configTemplate'],'r') as INFILE:
 				tmpFile = INFILE.read()
-			
-			
-			tmpFile = re.sub('setupGlobaltag\s*\=\s*[\"\'](.*?)[\"\']', 
-			                 'setupGlobaltag = \"'+globaltag+'\"', 
+		except IOError:
+			print 'The config-template called',datasetOptions['configTemplate'],'cannot be found.'
+			raise SystemExit
+		
+		tmpFile = re.sub('setupGlobaltag\s*\=\s*[\"\'](.*?)[\"\']', 
+		                 'setupGlobaltag = \"'+datasetOptions['globaltag']+'\"', 
+		                 tmpFile)
+		tmpFile = re.sub('setupCollection\s*\=\s*[\"\'](.*?)[\"\']', 
+		                 'setupCollection = \"'+datasetOptions['collection']+'\"', 
+		                 tmpFile)
+		if datasetOptions['cosmicsZeroTesla']:
+			tmpFile = re.sub(re.compile('setupCosmicsZeroTesla\s*\=\s*.*$', re.M),
+			                 'setupCosmicsZeroTesla = True',
 			                 tmpFile)
-			tmpFile = re.sub('setupCollection\s*\=\s*[\"\'](.*?)[\"\']', 
-			                 'setupCollection = \"'+collection+'\"', 
+		if datasetOptions['cosmicsDecoMode']:
+			tmpFile = re.sub(re.compile('setupCosmicsDecoMode\s*\=\s*.*$', re.M),
+			                 'setupCosmicsDecoMode = True',
 			                 tmpFile)
-			if cosmicsZeroTesla:
-				tmpFile = re.sub(re.compile('setupCosmicsZeroTesla\s*\=\s*.*$', re.M),
-				                 'setupCosmicsZeroTesla = True',
-				                 tmpFile)
-			if cosmicsDecoMode:
-				tmpFile = re.sub(re.compile('setupCosmicsDecoMode\s*\=\s*.*$', re.M),
-				                 'setupCosmicsDecoMode = True',
-				                 tmpFile)
-			if primaryWidth > 0.0:
-				tmpFile = re.sub(re.compile('setupPrimaryWidth\s*\=\s*.*$', re.M),
-				                 'setupPrimaryWidth = '+str(primaryWidth),
-				                 tmpFile)
-			
-			
-			with open('tmp.py', 'w') as OUTFILE:
-				OUTFILE.write(tmpFile)
-			thisCfgTemplate = 'tmp.py'
-			
-			
-			# Set mps_setup append option for datasets following the first one
-			append = ' -a'
-			if firstDataset:
-				append = ''
-				firstDataset = False
-			
-			# call mps_setup
-			command = 'mps_setup_v2.pl -m%s -M %d -N %s -w %s %s %s %s %d %s %s %s cmscafuser:%s' % (
-			          append, 
-			          pedeMem, 
-			          name,
-			          weight, 
-			          milleScript,
-			          thisCfgTemplate, 
-			          inputFileList, 
-			          njobs, 
-			          classInf, 
-			          jobname, 
-			          pedeScript, 
-			          mssDir)
-			print '\n', command
-			os.system(command)
-			
-			os.system('rm tmp.py')
-
-
+		if datasetOptions['primaryWidth'] > 0.0:
+			tmpFile = re.sub(re.compile('setupPrimaryWidth\s*\=\s*.*$', re.M),
+			                 'setupPrimaryWidth = '+str(datasetOptions['primaryWidth']),
+			                 tmpFile)
+		if datasetOptions['json'] != '':
+			tmpFile = re.sub(re.compile('setupJson\s*\=\s*.*$', re.M),
+			                 'setupJson = \"'+datasetOptions['json']+'\"',
+			                 tmpFile)
+		
+		with open('tmp.py', 'w') as OUTFILE:
+			OUTFILE.write(tmpFile)
+		thisCfgTemplate = 'tmp.py'
+		
+		
+		# Set mps_setup append option for datasets following the first one
+		append = ' -a'
+		if firstDataset:
+			append = ''
+			firstDataset = False
+		
+		# create mps_setup command
+		command = 'mps_setup_v2.pl -m%s -M %s -N %s -w %s %s %s %s %d %s %s %s cmscafuser:%s' % (
+		          append, 
+		          generalOptions['pedeMem'],
+		          datasetOptions['name'],
+		          datasetOptions['weight'],
+		          milleScript,
+		          thisCfgTemplate,
+		          datasetOptions['inputFileList'],
+		          datasetOptions['njobs'],
+		          generalOptions['classInf'],
+		          generalOptions['jobname'],
+		          pedeScript,
+		          mssDir)
+		# Some output:
+		print 'Submitting dataset:', datasetOptions['name']
+		print 'Baseconfig:        ', datasetOptions['configTemplate']
+		print 'Collection:        ', datasetOptions['collection']
+		if datasetOptions['collection']=='ALCARECOTkAlCosmicsCTF0T':
+			print 'cosmicsDecoMode:   ', datasetOptions['cosmicsDecoMode']
+			print 'cosmicsZeroTesla:  ', datasetOptions['cosmicsZeroTesla']
+		print 'Globaltag:         ', datasetOptions['globaltag']
+		print 'Number of jobs:    ', datasetOptions['njobs']
+		print 'Weight for Pede:   ', datasetOptions['weight']
+		print 'Inputfilelist:     ', datasetOptions['inputFileList']
+		if datasetOptions['json'] != '':
+			print 'Jsonfile:          ', datasetOptions['json']
+		print 'Pass to mps_setup: ', command
+		
+		# call the command and toggle verbose output
+		if args.verbose:
+			subprocess.call(command, stderr=subprocess.STDOUT, shell=True)
+		else:
+			FNULL = open(os.devnull, 'w')
+			subprocess.call(command, stdout=FNULL, stderr=subprocess.STDOUT, shell=True)
+		
+		# remove temporary file
+		os.system('rm tmp.py')
 
 
 

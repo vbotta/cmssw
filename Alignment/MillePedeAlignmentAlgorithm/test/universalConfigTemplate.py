@@ -43,7 +43,7 @@ setupCollection       = "placeholder_collection"
 setupCosmicsDecoMode  = False
 setupCosmicsZeroTesla = False
 setupPrimaryWidth     = -1.0
-
+setupJson             = "placeholder_json"
 
 ## Variables edited by MPS (mps_setup and mps_merge). Be careful.
 ## -----------------------------------------------------------------------------
@@ -115,35 +115,42 @@ confAliProducer.setConfiguration(process,
 ## Mille-procedure
 ## -----------------------------------------------------------------------------
 if setupAlgoMode is "mille":
-
-	## Track selection and refitting
-	## -----------------------------------------------------------------------------
-	process.load("RecoVertex.BeamSpotProducer.BeamSpot_cfi")
-	
-	import Alignment.CommonAlignment.tools.trackselectionRefitting as trackRefitter
-	process.TrackRefittingSequence = trackRefitter.getSequence(
-	    process, 
-	    setupCollection, 
-	    cosmicsDecoMode = setupCosmicsDecoMode,
-	    cosmicsZeroTesla = setupCosmicsZeroTesla)
-	
-	## Overwrite Track-Selector filter from unified Sequence to false 
-	process.AlignmentTrackSelector.filter = False
-		
-	
-	## Configure the input data.
-	## -----------------------------------------------------------------------------
-	process.source = cms.Source(
-	    "PoolSource",
-	    skipEvents = cms.untracked.uint32(0),
-	    fileNames  = readFiles
-	)
-	
-	## The executed path
-	## -----------------------------------------------------------------------------
-	process.p = cms.Path(
-	    process.offlineBeamSpot
-	    *process.TrackRefittingSequence)
+    
+    ## Track selection and refitting
+    ## -----------------------------------------------------------------------------
+    process.load("RecoVertex.BeamSpotProducer.BeamSpot_cfi")
+    
+    import Alignment.CommonAlignment.tools.trackselectionRefitting as trackRefitter
+    process.TrackRefittingSequence = trackRefitter.getSequence(
+        process, 
+        setupCollection, 
+        cosmicsDecoMode = setupCosmicsDecoMode,
+        cosmicsZeroTesla = setupCosmicsZeroTesla)
+    
+    ## Overwrite Track-Selector filter from unified Sequence to false 
+    process.AlignmentTrackSelector.filter = False
+    
+    # Set Luminosity-Blockrange from json-file if given
+    if (setupJson != "") and (setupJson != "placeholder_json"):
+        import FWCore.PythonUtilities.LumiList as LumiList
+        process.source.lumisToProcess = LumiList.LumiList(
+            filename = setupJson
+            ).getVLuminosityBlockRange() 
+    
+    
+    ## Configure the input data.
+    ## -----------------------------------------------------------------------------
+    process.source = cms.Source(
+        "PoolSource",
+        skipEvents = cms.untracked.uint32(0),
+        fileNames  = readFiles
+    )
+    
+    ## The executed path
+    ## -----------------------------------------------------------------------------
+    process.p = cms.Path(
+        process.offlineBeamSpot
+        *process.TrackRefittingSequence)
 
 
 ## Pede-procedure
@@ -205,8 +212,4 @@ else:
     process.source = cms.Source("EmptySource")
     process.dump = cms.EDAnalyzer("EventContentAnalyzer")
     process.p = cms.Path(process.dump)
-	
-
-
-#jsonfileplaceholder
 
