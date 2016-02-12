@@ -14,6 +14,9 @@ import os
 lib = mpslib.jobdatabase()
 lib.read_db()
 
+# update database
+os.system("mps_update.py > /dev/null")
+
 # loop over DONE jobs
 for i in xrange(len(lib.JOBID)):
 	if 'DONE' in lib.JOBSTATUS[i]:
