@@ -133,13 +133,6 @@ if setupAlgoMode == "mille":
     ## Overwrite Track-Selector filter from unified Sequence to false 
     process.AlignmentTrackSelector.filter = False
     
-    # Set Luminosity-Blockrange from json-file if given
-    if (setupJson != "") and (setupJson != "placeholder_json"):
-        import FWCore.PythonUtilities.LumiList as LumiList
-        process.source.lumisToProcess = LumiList.LumiList(
-            filename = setupJson
-            ).getVLuminosityBlockRange() 
-    
     
     ## Configure the input data.
     ## -----------------------------------------------------------------------------
@@ -148,6 +141,12 @@ if setupAlgoMode == "mille":
         skipEvents = cms.untracked.uint32(0),
         fileNames  = readFiles
     )
+    
+    # Set Luminosity-Blockrange from json-file if given
+    if (setupJson != "") and (setupJson != "placeholder_json"):
+        import FWCore.PythonUtilities.LumiList as LumiList
+        process.source.lumisToProcess = LumiList.LumiList(filename = setupJson).getVLuminosityBlockRange() 
+    
     
     ## The executed path
     ## -----------------------------------------------------------------------------
