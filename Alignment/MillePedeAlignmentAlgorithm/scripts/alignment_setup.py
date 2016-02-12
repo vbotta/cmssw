@@ -14,6 +14,7 @@ import os
 import re
 import subprocess
 import ConfigParser
+import sys
 
 # ------------------------------------------------------------------------------
 # set up argument parser and config parser
@@ -26,6 +27,8 @@ parser = argparse.ArgumentParser(description='Setup the alignment as configured 
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
 # optional argmuent: verbose (toggles output of mps_setup)
 parser.add_argument('-v', '--verbose',   action='store_true', help='display detailed output of mps_setup')
+# optional argmuent: weight (new weights for additional merge job)
+parser.add_argument('-w', '--weight',   action='store_true', help='create an additional mergejob with (possibly new) weights from .ini-config')
 # positional argument: config file
 parser.add_argument('alignmentConfig', 
                     action='store', 
@@ -95,13 +98,70 @@ for var in ['globaltag','configTemplate','json']:
 
 
 #------------------------------------------------------------------------------
+# -w option: Get new weights from .ini and create additional mergejob with these
+if args.weight:
+	
+	# do some basic checks
+	if not os.path.isdir("jobData"):
+		print "No jobData-folder found. Properly set up the alignment before using the -w option."
+		raise SystemExit
+	if not os.path.exists("mps.db"):
+		print "No mps.db found. Properly set up the alignment before using the -w option."
+		raise SystemExit
+	
+	# check if default configTemplate is given
+	try:
+		configTemplate = config.get('general','configTemplate')
+	except ConfigParser.NoOptionError:
+		print 'No default configTemplate given in general-section.'
+		print 'When using -w, a default cofigTemplate is needed to build a merge-config.'
+		raise SystemExit
+	
+	# blank weights
+	os.system("mps_weight.pl -c")
+	
+	# loop over datasets to reassign weights
+	for section in config.sections():
+		if 'general' in section:
+			continue
+		elif 'dataset' in section:
+			# get name of dataset
+			name = str(section)
+			name = name.replace(':','')
+			name = name.replace('dataset','')
+			# check for weight in dataset and call mps_weight.pl to write to mps.db
+			if config.has_option(section,'weight'):
+				weight = config.get(section,'weight')
+				os.system("mps_weight.pl -N "+name+" "+weight)
+	
+	# create new mergejob
+	os.system("mps_setupm.pl")
+	
+	# read mps.db to find directory of new mergejob
+	import Alignment.MillePedeAlignmentAlgorithm.mpslib.Mpslibclass as mpslib
+	lib = mpslib.jobdatabase()
+	lib.read_db()
+	
+	# delete old merge-config
+	command = "rm -f jobData/"+lib.JOBDIR[-1]+"/alignment_merge.py"
+	print command
+	os.system(command)
+	
+	# create new merge-config
+	command = "mps_merge_v2.py -w "+configTemplate+" jobData/"+lib.JOBDIR[-1]+"/alignment_merge.py jobData/"+lib.JOBDIR[-1]+" "+str(lib.nJobs)
+	print command
+	os.system(command)
+	
+	sys.exit()
+
+
+#------------------------------------------------------------------------------
 # loop over dataset-sections
 firstDataset = True
 for section in config.sections():
 	if 'general' in section:
 		continue
-	# TODO change "else" to "if 'dataset' in section:" when adding new section-types (e.g. conditions)
-	else:
+	elif 'dataset' in section:
 		datasetOptions={}
 		print '---------------------------------------------------------------'
 		
@@ -276,12 +336,4 @@ for section in config.sections():
 		
 		# remove temporary file
 		os.system('rm tmp.py')
-
-
-
-
-
-
-
-
 
