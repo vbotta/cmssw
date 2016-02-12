@@ -11,11 +11,11 @@
 import Alignment.MillePedeAlignmentAlgorithm.mpslib.Mpslibclass as mpslib
 import os
 
-lib = mpslib.jobdatabase()
-lib.read_db()
-
 # update database
 os.system("mps_update.py > /dev/null")
+
+lib = mpslib.jobdatabase()
+lib.read_db()
 
 # loop over DONE jobs
 for i in xrange(len(lib.JOBID)):
