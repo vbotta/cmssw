@@ -340,7 +340,7 @@ void SetMinMaxRange(TObjArray *hists)
 
    TH1 *h_first = static_cast<TH1*>(hists->At(0));
    h_first->SetMaximum(max+max*0.1);
-   if(min = 0.) {
+   if(min == 0.) {
      min = -1111;
      h_first->SetMinimum(min);
    } else {
