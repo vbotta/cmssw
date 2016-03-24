@@ -136,6 +136,9 @@ if setupAlgoMode == "mille":
     
     ## Overwrite Track-Selector filter from unified Sequence to false 
     process.AlignmentTrackSelector.filter = False
+    if setupCollection != "ALCARECOTkAlCosmicsCTF0T":
+        # there is no HighPurity selector for cosmics
+        process.HighPurityTrackSelector.filter = False
     
     
     ## Configure the input data.
