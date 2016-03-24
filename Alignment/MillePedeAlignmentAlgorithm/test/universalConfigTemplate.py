@@ -66,7 +66,11 @@ process.load('Alignment.MillePedeAlignmentAlgorithm.alignmentsetup.myMessageLogg
 
 ## Load the conditions
 ## -----------------------------------------------------------------------------
-process.load('Configuration.StandardSequences.MagneticField_cff') # B-field map
+if setupCosmicsZeroTesla:
+    # actually only needed for 0T MC samples, but does not harm for 0T data
+    process.load("Configuration.StandardSequences.MagneticField_0T_cff") # B-field map
+else:
+    process.load('Configuration.StandardSequences.MagneticField_cff') # B-field map
 process.load('Configuration.Geometry.GeometryRecoDB_cff') # Ideal geometry and interface
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff") # Global tag
 process.GlobalTag.connect   = "frontier://FrontierProd/CMS_CONDITIONS"
