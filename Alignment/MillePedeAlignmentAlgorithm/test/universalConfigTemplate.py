@@ -168,11 +168,10 @@ else:
     
     ## Replace "save to DB" directives
     ## -----------------------------------------------------------------------------
-    from CondCore.DBCommon.CondDBSetup_cfi import *
+    from CondCore.CondDB.CondDB_cfi import *
     process.PoolDBOutputService = cms.Service("PoolDBOutputService",
-        CondDBSetup,
+        CondDB,
         timetype = cms.untracked.string('runnumber'),
-        connect = cms.string('sqlite_file:alignments_MP.db'),
         toPut = cms.VPSet(cms.PSet(
             record = cms.string('TrackerAlignmentRcd'),
             tag = cms.string('Alignments')
@@ -203,6 +202,7 @@ else:
             )
         )
     )    
+    process.PoolDBOutputService.connect = 'sqlite_file:alignments_MP.db'
     process.AlignmentProducer.saveToDB = True
     
     
