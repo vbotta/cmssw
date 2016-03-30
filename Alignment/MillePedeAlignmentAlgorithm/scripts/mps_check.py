@@ -287,7 +287,7 @@ for i in xrange(len(lib.JOBID)):
 				if logZipped == 'true':
 					os.system('gzip '+eazeLog)
 			else:
-				print 'mps_check.pl cannot find',eazeLog,'to test'
+				print 'mps_check.py cannot find',eazeLog,'to test'
 			
 			
 			# check millepede.end -- added F. Meier 03.03.2015
@@ -316,7 +316,7 @@ for i in xrange(len(lib.JOBID)):
 				if logZipped == 'true':
 					os.system('gzip '+eazeLog)
 			else:
-				print 'mps_check.pl cannot find',eazeLog,'to test'
+				print 'mps_check.py cannot find',eazeLog,'to test'
 		
 		# end of merge job checks
 		# evaluate Errors:

@@ -171,7 +171,7 @@ else:
 				
 				# rewrite the mergeCfg using only 'OK' jobs (uses last mille-job as baseconfig)
 				inCfgPath = theJobData+'/'+lib.JOBDIR[lib.nJobs]+'/the.py'
-				command ='mps_merge_v2.py -c '+inCfgPath+' '+Path+'/'+mergeCfg+' '+Path+' '+str(lib.nJobs)
+				command ='mps_merge.py -c '+inCfgPath+' '+Path+'/'+mergeCfg+' '+Path+' '+str(lib.nJobs)
 				os.system(command)
 				
 				# rewrite theScript.sh using inly 'OK' jobs

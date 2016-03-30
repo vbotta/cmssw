@@ -7,7 +7,7 @@
 ##
 ##    Specify the path to this config-Template in the alignment_setup.ini
 ##
-##    The scripts alignment_setup.py and mps_setup.py set the Variables at the top (setup*).
+##    The scripts mps_alisetup.py and mps_setup.py set the Variables at the top (setup*).
 ##    
 ##        Collection specifies the type of Tracks. Currently these are supported:
 ##          - ALCARECOTkAlMinBias       -> Minimum Bias
@@ -35,7 +35,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Alignment")
 
 
-## Variables edited by alignment_setup.py. Used in functions below.
+## Variables edited by mps_alisetup.py. Used in functions below.
 ## You can change them manually as well.
 ## -----------------------------------------------------------------------------
 setupGlobaltag        = "placeholder_globaltag"
@@ -54,7 +54,7 @@ setupAlgoMode         = "mille"
 setupMonitorFile      = "millePedeMonitorISN.root"
 setupBinaryFile       = "milleBinaryISN.dat"
 
-# Input files. Edited by mps_splice_v2.py
+# Input files. Edited by mps_splice.py
 readFiles = cms.untracked.vstring()
 
 
@@ -209,7 +209,7 @@ else:
     ## Reconfigure parts of the algorithm configuration
     ## -----------------------------------------------------------------------------
     
-    # placeholers get replaced by mps_merge_v2.py, which is called in mps_setup_v2.pl
+    # placeholers get replaced by mps_merge.py, which is called in mps_setup.pl
     process.AlignmentProducer.algoConfig.mergeBinaryFiles = ['placeholder_binaryList']
     process.AlignmentProducer.algoConfig.mergeTreeFiles   = ['placeholder_treeList']
     

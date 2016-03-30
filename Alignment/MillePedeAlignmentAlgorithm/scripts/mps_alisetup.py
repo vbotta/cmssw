@@ -3,7 +3,7 @@
 #############################################################################
 ##  Builds the config-templates from the universal config-template for each
 ##  dataset specified in .ini-file that is passed to this script as argument.
-##  Then calls mps_setup_v2.pl for all datasets.
+##  Then calls mps_setup.pl for all datasets.
 ##
 ##  Usage:
 ##     alignment_setup.py [-h] [-v] myconfig.ini
@@ -21,7 +21,7 @@ import sys
 
 helpEpilog ='''Builds the config-templates from a universal config-template for each
 dataset specified in .ini-file that is passed to this script.
-Then calls mps_setup_v2.pl for all datasets.'''
+Then calls mps_setup.pl for all datasets.'''
 parser = argparse.ArgumentParser(description='Setup the alignment as configured in the alignment_config file.', 
                                  epilog=helpEpilog, 
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -148,7 +148,7 @@ if args.weight:
 	os.system(command)
 	
 	# create new merge-config
-	command = "mps_merge_v2.py -w "+configTemplate+" jobData/"+lib.JOBDIR[-1]+"/alignment_merge.py jobData/"+lib.JOBDIR[-1]+" "+str(lib.nJobs)
+	command = "mps_merge.py -w "+configTemplate+" jobData/"+lib.JOBDIR[-1]+"/alignment_merge.py jobData/"+lib.JOBDIR[-1]+" "+str(lib.nJobs)
 	print command
 	os.system(command)
 	
@@ -248,7 +248,7 @@ for section in config.sections():
 		
 		# Check if njobs gets overwritten in .ini-file
 		if config.has_option(section,'njobs'):
-			if config.getint(section,'njobs')<datasetOptions['njobs']:
+			if config.getint(section,'njobs')<=datasetOptions['njobs']:
 				datasetOptions['njobs'] = config.getint(section,'njobs')
 			else:
 				print 'njobs is bigger than the default',datasetOptions['njobs'],'. Using default.'
@@ -299,7 +299,7 @@ for section in config.sections():
 			firstDataset = False
 		
 		# create mps_setup command
-		command = 'mps_setup_v2.pl -m%s -M %s -N %s -w %s %s %s %s %d %s %s %s cmscafuser:%s' % (
+		command = 'mps_setup.pl -m%s -M %s -N %s -w %s %s %s %s %d %s %s %s cmscafuser:%s' % (
 		          append, 
 		          generalOptions['pedeMem'],
 		          datasetOptions['name'],
