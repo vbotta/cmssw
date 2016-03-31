@@ -23,6 +23,8 @@ parser.add_argument('-c', '--checkok', action='store_true',
                     help='check which jobs are OK and write just them to the config')
 parser.add_argument('-w', '--checkweight', action='store_true',
                     help='check for weight assignments in mps.db and add them to binarylist')
+parser.add_argument("-a", "--append", dest="append", metavar="SNIPPET",
+                    help="config snippet to be appended to the output config")
 
 # positional arguments
 parser.add_argument('inCfg', action='store',
@@ -124,6 +126,9 @@ if match:
 else:
     print 'Error in mps_merge: No \'placeholder_treeList\' found in baseconfig.'
 
+if args.append is not None:
+    with open(args.append) as snippet:
+        body += snippet.read()
 
 with open(mergeCfg, 'w') as OUTFILE:
     OUTFILE.write(body)
