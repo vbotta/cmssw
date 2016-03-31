@@ -13,6 +13,8 @@ if "CMSSW_BASE" not in os.environ:
     print "You need to source the CMSSW environment first."
     sys.exit(1)
 
+from Alignment.MillePedeAlignmentAlgorithm.alignmentsetup.helper import checked_out_MPS
+
 required_version = (2,7)
 if sys.version_info < required_version:
     print "Your Python interpreter is too old. Need version 2.7 or higher."
@@ -161,26 +163,6 @@ def add_campaign(campaign_file, campaign, args):
     fcntl.flock(campaign_file, fcntl.LOCK_EX)
     campaign_file.write(campaign_info)
     fcntl.flock(campaign_file, fcntl.LOCK_UN)
-
-
-def checked_out_MPS():
-    """Checks if MPS is checked out locally or taken from the release.
-    """
-
-    checked_out_packages = os.path.join(os.environ["CMSSW_BASE"], "src", ".git",
-                                        "info", "sparse-checkout")
-    checked_out = False
-    try:
-        with open(checked_out_packages, "r") as f:
-            package = "/Alignment/MillePedeAlignmentAlgorithm/"
-            for line in f:
-                if package == line.strip():
-                    checked_out = True
-                    break
-    except IOError as e:
-        if e.args != (2, 'No such file or directory'): raise
-
-    return checked_out
 
 
 def copy_default_templates(MPS_dir, next_campaign):
