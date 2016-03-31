@@ -15,7 +15,63 @@ import re
 import subprocess
 import ConfigParser
 import sys
+import itertools
+import collections
+import Alignment.MillePedeAlignmentAlgorithm.mpslib.Mpslibclass as mpslib
 from Alignment.MillePedeAlignmentAlgorithm.alignmentsetup.helper import checked_out_MPS
+
+
+def get_weight_configs(config):
+    """Extracts different weight configurations from `config`.
+
+    Arguments:
+    - `config`: ConfigParser object containing the alignment configuration
+    """
+
+    weight_dict = collections.OrderedDict()
+    common_weights = {}
+
+    # loop over datasets to reassign weights
+    for section in config.sections():
+        if 'general' in section:
+            continue
+        elif section == "weights":
+            for option in config.options(section):
+                common_weights[option] = [x.strip() for x in
+                                          config.get(section, option).split(",")]
+        elif section.startswith("dataset:"):
+            name = section[8:]  # get name of dataset by stripping of "dataset:"
+            if config.has_option(section,'weight'):
+                weight_dict[name] = [x.strip() for x in
+                                     config.get(section, "weight").split(",")]
+            else:
+                weight_dict[name] = ['1.0']
+
+    weights_list = [[(name, weight) for weight in  weight_dict[name]]
+                    for name in weight_dict]
+
+    common_weights_list = [[(name, weight) for weight in  common_weights[name]]
+                           for name in common_weights]
+    common_weights_dicts = []
+    for item in itertools.product(*common_weights_list):
+        d = {}
+        for name,weight in item:
+            d[name] = weight
+        common_weights_dicts.append(d)
+
+    configs = []
+    for weight_conf in itertools.product(*weights_list):
+        if len(common_weights) > 0:
+            for common_weight in common_weights_dicts:
+                configs.append([(dataset[0],
+                                 reduce(lambda x,y: x.replace(y, common_weight[y]),
+                                        common_weight, dataset[1]))
+                                for dataset in weight_conf])
+        else:
+            configs.append(weight_conf)
+
+    return configs
+
 
 
 # ------------------------------------------------------------------------------
@@ -42,6 +98,7 @@ aligmentConfig = args.alignmentConfig
 
 # parse config file
 config = ConfigParser.ConfigParser()
+config.optionxform = str    # default would give lowercase options -> not wanted
 config.read(aligmentConfig)
 
 
@@ -86,7 +143,7 @@ for var in ['classInf','pedeMem','jobname']:
     try:
         generalOptions[var] = config.get('general',var)
     except ConfigParser.NoOptionError:
-        print 'No', var, 'found in general-section. Please check ini-file.'
+        print "No", var, "found in [general] section. Please check ini-file."
         raise SystemExit
 
 # check if datasetdir is given
@@ -96,14 +153,22 @@ if config.has_option('general','datasetdir'):
     # add it to environment for later variable expansion:
     os.environ["datasetdir"] = generalOptions['datasetdir']
 else:
-    print 'No datasetdir given in general-section. Be sure to give a full path in inputFileList.'
+    print "No datasetdir given in [general] section.",
+    print "Be sure to give a full path in inputFileList."
 
 # check for default options
 for var in ['globaltag','configTemplate','json']:
     try:
         generalOptions[var] = config.get('general',var)
     except ConfigParser.NoOptionError:
-        print 'No default', var, 'given in general-section.'
+        print 'No default', var, 'given in [general] section.'
+
+
+
+pedesettings = ([x.strip() for x in config.get("general", "pedesettings").split(",")]
+                if config.has_option("general", "pedesettings") else [None])
+
+weight_confs = get_weight_configs(config)
 
 
 #------------------------------------------------------------------------------
@@ -122,42 +187,75 @@ if args.weight:
     try:
         configTemplate = config.get('general','configTemplate')
     except ConfigParser.NoOptionError:
-        print 'No default configTemplate given in general-section.'
-        print 'When using -w, a default cofigTemplate is needed to build a merge-config.'
+        print 'No default configTemplate given in [general] section.'
+        print 'When using -w, a default configTemplate is needed to build a merge-config.'
         raise SystemExit
 
-    # blank weights
-    os.system("mps_weight.pl -c")
+    # check if default globaltag is given
+    try:
+        globalTag = config.get('general','globaltag')
+    except ConfigParser.NoOptionError:
+        print "No default 'globaltag' given in [general] section."
+        print "When using -w, a default configTemplate is needed to build a merge-config."
+        raise SystemExit
 
-    # loop over datasets to reassign weights
-    for section in config.sections():
-        if 'general' in section:
-            continue
-        elif section.startswith("dataset:"):
-            name = section[8:]  # get name of dataset by stripping of "dataset:"
-            # check for weight in dataset and call mps_weight.pl to write to mps.db
-            if config.has_option(section,'weight'):
-                weight = config.get(section,'weight')
+    try:
+        with open(configTemplate,"r") as f:
+            tmpFile = f.read()
+    except IOError:
+        print "The config-template '"+configTemplate+"' cannot be found."
+        raise SystemExit
+
+    tmpFile = re.sub('setupGlobaltag\s*\=\s*[\"\'](.*?)[\"\']',
+                     'setupGlobaltag = \"'+globalTag+'\"',
+                     tmpFile)
+
+    thisCfgTemplate = "tmp.py"
+    with open(thisCfgTemplate, "w") as f:
+        f.write(tmpFile)
+
+    for setting in pedesettings:
+        print
+        print "="*60
+        if setting is None:
+            print "Creating pede job."
+        else:
+            print "Creating pede jobs using settings from '{0}'.".format(setting)
+        for weight_conf in weight_confs:
+            print "-"*60
+            # blank weights
+            os.system("mps_weight.pl -c > /dev/null")
+
+            for name,weight in weight_conf:
                 os.system("mps_weight.pl -N "+name+" "+weight)
 
-    # create new mergejob
-    os.system("mps_setupm.pl")
+            # create new mergejob
+            os.system("mps_setupm.pl")
 
-    # read mps.db to find directory of new mergejob
-    import Alignment.MillePedeAlignmentAlgorithm.mpslib.Mpslibclass as mpslib
-    lib = mpslib.jobdatabase()
-    lib.read_db()
+            # read mps.db to find directory of new mergejob
+            lib = mpslib.jobdatabase()
+            lib.read_db()
 
-    # delete old merge-config
-    command = "rm -f jobData/"+lib.JOBDIR[-1]+"/alignment_merge.py"
-    print command
-    os.system(command)
+            # delete old merge-config
+            command = "rm -f jobData/"+lib.JOBDIR[-1]+"/alignment_merge.py"
+            print command
+            os.system(command)
 
-    # create new merge-config
-    command = "mps_merge.py -w "+configTemplate+" jobData/"+lib.JOBDIR[-1]+"/alignment_merge.py jobData/"+lib.JOBDIR[-1]+" "+str(lib.nJobs)
-    print command
-    os.system(command)
+            # create new merge-config
+            command = ("mps_merge.py -w "+thisCfgTemplate+" jobData/"+
+                       lib.JOBDIR[-1]+"/alignment_merge.py jobData/"+
+                       lib.JOBDIR[-1]+" "+str(lib.nJobs))
+            if setting is not None: command += " -a "+setting
+            print command
+            if args.verbose:
+                subprocess.call(command, stderr=subprocess.STDOUT, shell=True)
+            else:
+                with open(os.devnull, 'w') as FNULL:
+                    subprocess.call(command, stdout=FNULL,
+                                    stderr=subprocess.STDOUT, shell=True)
 
+    # remove temporary file
+    os.system("rm "+thisCfgTemplate)
     sys.exit()
 
 
@@ -169,7 +267,7 @@ for section in config.sections():
         continue
     elif section.startswith("dataset:"):
         datasetOptions={}
-        print '---------------------------------------------------------------'
+        print "-"*60
 
         # set name from section-name
         datasetOptions['name'] = section[8:]
@@ -182,7 +280,7 @@ for section in config.sections():
                 print 'No', var, 'found in', section+'. Please check ini-file.'
                 raise SystemExit
 
-        # get globaltag and configTemplate. If none in section, try to get default from general-section.
+        # get globaltag and configTemplate. If none in section, try to get default from [general] section.
         for var in ['configTemplate','globaltag']:
             if config.has_option(section,var):
                 datasetOptions[var] = config.get(section,var)
@@ -190,7 +288,8 @@ for section in config.sections():
                 try:
                     datasetOptions[var] = generalOptions[var]
                 except KeyError:
-                    print 'No',var,'found in', section,' and no default in general-section.'
+                    print "No",var,"found in ["+section+"]",
+                    print "and no default in [general] section."
                     raise SystemExit
 
         # extract non-essential options
@@ -206,10 +305,6 @@ for section in config.sections():
         if config.has_option(section,'primaryWidth'):
             datasetOptions['primaryWidth'] = config.getfloat(section,'primaryWidth')
 
-        datasetOptions['weight'] = '1.0'
-        if config.has_option(section,'weight'):
-            datasetOptions['weight'] = config.get(section,'weight')
-
         datasetOptions['json'] = ''
         if config.has_option(section, 'json'):
             datasetOptions['json'] = config.get(section,'json')
@@ -217,7 +312,8 @@ for section in config.sections():
             try:
                 datasetOptions['json'] = generalOptions['json']
             except KeyError:
-                print 'No json given in either general- or', section+'-section. Proceeding without json-file.'
+                print "No json given in either [general] or ["+section+"] sections.",
+                print "Proceeding without json-file."
 
 
         # replace '${datasetdir}' and other variables in inputFileList-path
@@ -296,13 +392,13 @@ for section in config.sections():
         if firstDataset:
             append = ''
             firstDataset = False
+            configTemplate = tmpFile
 
         # create mps_setup command
-        command = 'mps_setup.pl -m%s -M %s -N %s -w %s %s %s %s %d %s %s %s cmscafuser:%s' % (
+        command = 'mps_setup.pl -m%s -M %s -N %s %s %s %s %d %s %s %s cmscafuser:%s' % (
               append,
               generalOptions['pedeMem'],
               datasetOptions['name'],
-              datasetOptions['weight'],
               milleScript,
               thisCfgTemplate,
               datasetOptions['inputFileList'],
@@ -320,7 +416,6 @@ for section in config.sections():
             print 'cosmicsZeroTesla:  ', datasetOptions['cosmicsZeroTesla']
         print 'Globaltag:         ', datasetOptions['globaltag']
         print 'Number of jobs:    ', datasetOptions['njobs']
-        print 'Weight for Pede:   ', datasetOptions['weight']
         print 'Inputfilelist:     ', datasetOptions['inputFileList']
         if datasetOptions['json'] != '':
             print 'Jsonfile:      ', datasetOptions['json']
@@ -335,9 +430,60 @@ for section in config.sections():
                                 stderr=subprocess.STDOUT, shell=True)
 
         # remove temporary file
-        os.system('rm tmp.py')
+        os.system("rm "+thisCfgTemplate)
 
 if firstDataset:
     print "No dataset section defined in '{0}'".format(aligmentConfig)
     print "At least one section '[dataset:<name>]' is required."
     sys.exit(1)
+
+firstPedeConfig = True
+for setting in pedesettings:
+    print
+    print "="*60
+    if setting is None:
+        print "Creating pede job."
+    else:
+        print "Creating pede jobs using settings from '{0}'.".format(setting)
+    for weight_conf in weight_confs:
+        print "-"*60
+        # blank weights
+        os.system("mps_weight.pl -c > /dev/null")
+
+        for name,weight in weight_conf:
+            os.system("mps_weight.pl -N "+name+" "+weight)
+
+        if firstPedeConfig:
+            firstPedeConfig = False
+        else:
+            # create new mergejob
+            os.system("mps_setupm.pl")
+
+        # read mps.db to find directory of new mergejob
+        lib = mpslib.jobdatabase()
+        lib.read_db()
+
+        # delete old merge-config
+        command = "rm -f jobData/"+lib.JOBDIR[-1]+"/alignment_merge.py"
+        print command
+        os.system(command)
+
+        thisCfgTemplate = "tmp.py"
+        with open(thisCfgTemplate, "w") as f:
+            f.write(configTemplate)
+
+        # create new merge-config
+        command = ("mps_merge.py -w "+thisCfgTemplate+" jobData/"+lib.JOBDIR[-1]+
+                   "/alignment_merge.py jobData/"+lib.JOBDIR[-1]+" "+
+                   str(lib.nJobs))
+        if setting is not None: command += " -a "+setting
+        print command
+        if args.verbose:
+            subprocess.call(command, stderr=subprocess.STDOUT, shell=True)
+        else:
+            with open(os.devnull, 'w') as FNULL:
+                subprocess.call(command, stdout=FNULL,
+                                stderr=subprocess.STDOUT, shell=True)
+
+    # remove temporary file
+    os.system("rm "+thisCfgTemplate)
