@@ -83,6 +83,15 @@ def main(argv = None):
             campaign_list = "MP_ali_list.txt"
             with open(campaign_list, "a") as f:
                 add_campaign(f, next_campaign, args)
+            backup_dir = ".MP_ali_list"
+            try:
+                os.makedirs(backup_dir)
+            except OSError as e:
+                if e.args == (17, 'File exists'):
+                    pass
+                else:
+                    raise
+            shutil.copy(campaign_list, backup_dir)
             print "    - updated campaign list '"+campaign_list+"'"
 
             if args.copy is None:
@@ -90,9 +99,9 @@ def main(argv = None):
             else:
                 copied_files = []
                 for ext in ("py", "ini", "txt"):
-                    for f in glob.glob(args.copy+"/*."+ext):
-                        copied_files.append(os.path.basename(f))
-                        shutil.copy(os.path.join(f), next_campaign)
+                    for config_file in glob.glob(args.copy+"/*."+ext):
+                        copied_files.append(os.path.basename(config_file))
+                        shutil.copy(config_file, next_campaign)
                 if len(copied_files) == 0:
                     print "    - no configuration files for '"+args.copy+"'"
                     copy_default_templates(MPS_dir, next_campaign)
@@ -100,8 +109,8 @@ def main(argv = None):
                     print "    - copied configuration files from",
                     print "'"+args.copy+"':", ", ".join(copied_files)
 
-        except OSError as a:
-            if a.args == (17, 'File exists'):
+        except OSError as e:
+            if e.args == (17, 'File exists'):
                 next_number += 1 # someone created a campaign ~at the same time
                 continue
             else:
@@ -143,18 +152,23 @@ def add_campaign(campaign_file, campaign, args):
     version = os.environ["CMSSW_VERSION"]
     if args.checked_out[1]:
         local_area = os.path.join(os.environ["CMSSW_BASE"], "src")
-        p = subprocess.Popen(["git", "tag", "--points-at", "HEAD"],
-                             cwd = local_area, stdout=subprocess.PIPE)
-        tags = p.communicate()[0].split()
-        # check for deleted, untracked, modified files respecting .gitignore:
-        p = subprocess.Popen(["git", "ls-files", "-d", "-o", "-m",
-                              "--exclude-standard"],
-                             cwd = local_area, stdout=subprocess.PIPE)
-        files = p.communicate()[0].split()
-        # check for staged tracked files:
-        p = subprocess.Popen(["git", "diff", "--name-only", "--staged"],
-                             cwd = local_area, stdout=subprocess.PIPE)
-        files.extend(p.communicate()[0].split())
+        with open(os.devnull, 'w') as devnull:
+            # check which tags (-> e.g. release names) point at current commit
+            p = subprocess.Popen(["git", "tag", "--points-at", "HEAD"],
+                                 cwd = local_area, stdout=subprocess.PIPE,
+                                 stderr=devnull)
+            tags = p.communicate()[0].split()
+            # check for deleted, untracked, modified files respecting .gitignore:
+            p = subprocess.Popen(["git", "ls-files", "-d", "-o", "-m",
+                                  "--exclude-standard"],
+                                 cwd = local_area, stdout=subprocess.PIPE,
+                                 stderr=devnull)
+            files = p.communicate()[0].split()
+            # check for staged tracked files:
+            p = subprocess.Popen(["git", "diff", "--name-only", "--staged"],
+                                 cwd = local_area, stdout=subprocess.PIPE,
+                                 stderr=devnull)
+            files.extend(p.communicate()[0].split())
         if version not in tags or len(files) != 0:
             version += " (mod.)"
 
