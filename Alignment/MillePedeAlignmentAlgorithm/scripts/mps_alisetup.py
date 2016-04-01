@@ -108,7 +108,7 @@ config.read(aligmentConfig)
 
 # set variables that are not too specific (millescript, pedescript, etc.)
 mpsScriptsDir = os.path.join("src", "Alignment", "MillePedeAlignmentAlgorithm", "scripts")
-if checked_out_MPS():
+if checked_out_MPS()[0]:
     mpsScriptsDir = os.path.join(os.environ["CMSSW_BASE"], mpsScriptsDir)
 else:
     mpsScriptsDir = os.path.join(os.environ["CMSSW_RELEASE_BASE"], mpsScriptsDir)

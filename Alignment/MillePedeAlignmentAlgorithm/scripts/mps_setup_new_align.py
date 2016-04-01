@@ -13,7 +13,8 @@ if "CMSSW_BASE" not in os.environ:
     print "You need to source the CMSSW environment first."
     sys.exit(1)
 
-from Alignment.MillePedeAlignmentAlgorithm.alignmentsetup.helper import checked_out_MPS
+from Alignment.MillePedeAlignmentAlgorithm.alignmentsetup.helper \
+    import checked_out_MPS
 
 required_version = (2,7)
 if sys.version_info < required_version:
@@ -57,7 +58,7 @@ def main(argv = None):
 
     MPS_dir = os.path.join("src", "Alignment", "MillePedeAlignmentAlgorithm")
     args.checked_out = checked_out_MPS()
-    if args.checked_out:
+    if args.checked_out[0]:
         MPS_dir = os.path.join(os.environ["CMSSW_BASE"], MPS_dir)
     else:
         MPS_dir = os.path.join(os.environ["CMSSW_RELEASE_BASE"], MPS_dir)
@@ -140,18 +141,19 @@ def add_campaign(campaign_file, campaign, args):
     campaign_info += datetime.date.today().isoformat().ljust(11)
 
     version = os.environ["CMSSW_VERSION"]
-    if args.checked_out:
+    if args.checked_out[1]:
+        local_area = os.path.join(os.environ["CMSSW_BASE"], "src")
         p = subprocess.Popen(["git", "tag", "--points-at", "HEAD"],
-                             cwd = args.MPS_dir, stdout=subprocess.PIPE)
+                             cwd = local_area, stdout=subprocess.PIPE)
         tags = p.communicate()[0].split()
         # check for deleted, untracked, modified files respecting .gitignore:
         p = subprocess.Popen(["git", "ls-files", "-d", "-o", "-m",
                               "--exclude-standard"],
-                             cwd = args.MPS_dir, stdout=subprocess.PIPE)
+                             cwd = local_area, stdout=subprocess.PIPE)
         files = p.communicate()[0].split()
         # check for staged tracked files:
         p = subprocess.Popen(["git", "diff", "--name-only", "--staged"],
-                             cwd = args.MPS_dir, stdout=subprocess.PIPE)
+                             cwd = local_area, stdout=subprocess.PIPE)
         files.extend(p.communicate()[0].split())
         if version not in tags or len(files) != 0:
             version += " (mod.)"
