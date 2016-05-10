@@ -36,10 +36,7 @@ TCanvas *trackSplitPlot(Int_t nFiles,TString *files,TString *names,TString xvar,
     const Int_t n = nFiles;
 
     setTDRStyle();
-    gStyle->SetOptStat(0);        //for histograms, the mean and rms are included in the legend if nFiles >= 2
-                                  //if nFiles == 1, there is no legend, so they're in the statbox
-    if ((type == Histogram || type == OrgHistogram) && nFiles == 1)
-        gStyle->SetOptStat(1110);
+    gStyle->SetOptStat(0);        //for histograms, the mean and rms are included in the legend
     //for a scatterplot, this is needed to show the z axis scale
     //for non-pull histograms or when run number is on the x axis, this is needed so that 10^-? on the right is not cut off
     if (type == ScatterPlot || (type == Histogram && !pull) || xvar == "runNumber")
@@ -461,35 +458,32 @@ TCanvas *trackSplitPlot(Int_t nFiles,TString *files,TString *names,TString xvar,
             legend->AddEntry((TObject*)0,meansrmss[i],"");
         }
     }
-    if (n>=2)
+    if (legend->GetListOfPrimitives()->At(0) == 0)
     {
-        if (legend->GetListOfPrimitives()->At(0) == 0)
-        {
-            stufftodelete->Clear();
-            deleteCanvas(c1);
-            return 0;
-        }
-
-
-        c1->Update();
-        Double_t x1min  = .98*gPad->GetUxmin() + .02*gPad->GetUxmax();
-        Double_t x2max  = .02*gPad->GetUxmin() + .98*gPad->GetUxmax();
-        Double_t y1min  = .98*gPad->GetUymin() + .02*gPad->GetUymax();
-        Double_t y2max  = .02*gPad->GetUymin() + .98*gPad->GetUymax();
-        Double_t width  = .4*(x2max-x1min);
-        Double_t height = (1./20)*legend->GetListOfPrimitives()->GetEntries()*(y2max-y1min);
-        if (type == Histogram || type == OrgHistogram)
-        {
-            width *= 2;
-            height /= 2;
-            legend->SetNColumns(2);
-        }
-        Double_t newy2max = placeLegend(legend,width,height,x1min,y1min,x2max,y2max);
-        maxp->GetYaxis()->SetRangeUser(gPad->GetUymin(),(newy2max-.02*gPad->GetUymin())/.98);
-
-        legend->SetFillStyle(0);
-        legend->Draw();
+        stufftodelete->Clear();
+        deleteCanvas(c1);
+        return 0;
     }
+
+
+    c1->Update();
+    Double_t x1min  = .98*gPad->GetUxmin() + .02*gPad->GetUxmax();
+    Double_t x2max  = .02*gPad->GetUxmin() + .98*gPad->GetUxmax();
+    Double_t y1min  = .98*gPad->GetUymin() + .02*gPad->GetUymax();
+    Double_t y2max  = .02*gPad->GetUymin() + .98*gPad->GetUymax();
+    Double_t width  = .4*(x2max-x1min);
+    Double_t height = (1./20)*legend->GetListOfPrimitives()->GetEntries()*(y2max-y1min);
+    if (type == Histogram || type == OrgHistogram)
+    {
+        width *= 2;
+        height /= 2;
+        legend->SetNColumns(2);
+    }
+    Double_t newy2max = placeLegend(legend,width,height,x1min,y1min,x2max,y2max);
+    maxp->GetYaxis()->SetRangeUser(gPad->GetUymin(),(newy2max-.02*gPad->GetUymin())/.98);
+
+    legend->SetFillStyle(0);
+    legend->Draw();
 
     if (saveas != "")
         saveplot(c1,saveas);
@@ -2032,6 +2026,7 @@ Double_t findRMS(TString file,TString var,Char_t axis,Bool_t relative,Bool_t pul
 
 void axislimits(Int_t nFiles,TString *files,TString var,Char_t axis,Bool_t relative,Bool_t pull,Double_t &min,Double_t &max)
 {
+    bool pixel = subdetector.Contains("PIX");
     if (axis == 'x')
     {
         Bool_t nHits = (var[0] == 'n' && var[1] == 'H' && var[2] == 'i'
@@ -2048,13 +2043,23 @@ void axislimits(Int_t nFiles,TString *files,TString var,Char_t axis,Bool_t relat
         }
         else if (var == "dxy")
         {
-            min = -10;
-            max = 10;
+            min = -100;
+            max = 100;
+            if (pixel)
+            {
+                min = -10;
+                max = 10;
+            }
         }
         else if (var == "dz")
         {
-            min = -25;
-            max = 25;
+            min = -250;
+            max = 250;
+            if (pixel)
+            {
+                min = -25;
+                max = 25;
+            }
         }
         else if (var == "theta")
         {
@@ -2109,23 +2114,43 @@ void axislimits(Int_t nFiles,TString *files,TString var,Char_t axis,Bool_t relat
         }
         else if (var == "dxy")
         {
-            min = -125;
-            max = 125;
+            min = -1250;
+            max = 1250;
+            if (pixel)
+            {
+                min = -125;
+                max = 125;
+            }
         }
         else if (var == "dz")
         {
-            min = -200;
-            max = 200;
+            min = -2000;
+            max = 2000;
+            if (pixel)
+            {
+                min = -200;
+                max = 200;
+            }
         }
         else if (var == "theta")
         {
-            min = -.005;
-            max = .005;
+            min = -.01;
+            max = .01;
+            if (pixel)
+            {
+                min = -.005;
+                max = .005;
+            }
         }
         else if (var == "eta")
         {
-            min = -.003;
-            max = .003;
+            min = -.007;
+            max = .007;
+            if (pixel)
+            {
+                min = -.003;
+                max = .003;
+            }
         }
         else if (var == "phi")
         {

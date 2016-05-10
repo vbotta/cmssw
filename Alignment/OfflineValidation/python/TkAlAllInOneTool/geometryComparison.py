@@ -2,7 +2,7 @@ import os
 import ConfigParser # needed for exceptions in this module
 import configTemplates
 from genericValidation import GenericValidation
-from helperFunctions import replaceByMap
+from helperFunctions import replaceByMap, getCommandOutput2
 from TkAlExceptions import AllInOneError
 
 
@@ -87,7 +87,8 @@ class GeometryComparison(GenericValidation):
                                           #  if not compared to IDEAL
             "reference": referenceName,
             "referenceTitle": referenceTitle,
-	    "alignmentTitle": self.alignmentToValidate.title
+	    "alignmentTitle": self.alignmentToValidate.title,
+            "moduleListBase": os.path.basename(repMap["moduleList"]),
             })
         if not referenceName == "IDEAL":
             repMap["referenceGeometry"] = (".oO[reference]Oo."
@@ -153,8 +154,8 @@ class GeometryComparison(GenericValidation):
                      "root -b -q 'comparisonScript.C+(\""
                      ".oO[name]Oo..Comparison_common"+name+".root\",\""
                      "./\",\".oO[modulesToPlot]Oo.\",\".oO[alignmentName]Oo.\",\".oO[reference]Oo.\",\".oO[useDefaultRange]Oo.\",\".oO[plotOnlyGlobal]Oo.\",\".oO[plotPng]Oo.\""+y_ranges+")'\n"
-		     "rfcp "+path+"/TkAl3DVisualization_.oO[name]Oo..C .\n"
-		     "root -l -b -q TkAl3DVisualization_.oO[name]Oo..C+\n")
+		     "rfcp "+path+"/TkAl3DVisualization_.oO[common]Oo._.oO[name]Oo..C .\n"
+		     "root -l -b -q TkAl3DVisualization_.oO[common]Oo._.oO[name]Oo..C+\n")
                 if  self.copyImages:
                    repMap["runComparisonScripts"] += \
                        ("rfmkdir -p .oO[datadir]Oo./.oO[name]Oo."
@@ -238,9 +239,9 @@ class GeometryComparison(GenericValidation):
                         ".Comparison_common"+name+"_Images/ArrowPlots\"\n")
 		   repMap["runComparisonScripts"] += \
                        ("find . "
-                        "-maxdepth 1 -name \".oO[name]Oo..Visualization_rotated.gif\" -print | xargs -I {} bash "
+                        "-maxdepth 1 -name \".oO[common]Oo._.oO[name]Oo..Visualization_rotated.gif\" -print | xargs -I {} bash "
                         "-c \"rfcp {} .oO[datadir]Oo./.oO[name]Oo."
-                        ".Comparison_common"+name+"_Images/.oO[name]Oo..Visualization.gif\"\n")
+                        ".Comparison_common"+name+"_Images/.oO[common]Oo._.oO[name]Oo..Visualization.gif\"\n")
 
                 resultingFile = replaceByMap(("/store/caf/user/$USER/.oO[eosdir]Oo./compared%s_"
                                               ".oO[name]Oo..root"%name), repMap)
@@ -254,8 +255,21 @@ class GeometryComparison(GenericValidation):
 
         repMap["CommandLine"]=""
         repMap["CommandLine"]+= \
-                 ("# copy module list required for comparison script \n"
-                 "rfcp .oO[moduleList]Oo. .\n")
+                 "# copy module list required for comparison script \n"
+        if repMap["moduleList"].startswith("/store"):
+            repMap["CommandLine"]+= \
+                 "xrdcp root://eoscms//eos/cms.oO[moduleList]Oo. .\n"
+        elif repMap["moduleList"].startswith("root://"):
+            repMap["CommandLine"]+= \
+                 "xrdcp .oO[moduleList]Oo. .\n"
+        else:
+            repMap["CommandLine"]+= \
+                     "rfcp .oO[moduleList]Oo. .\n"
+
+        try:
+            getCommandOutput2(replaceByMap("cd $(mktemp -d)\n.oO[CommandLine]Oo.\ncat .oO[moduleListBase]Oo.", repMap))
+        except RuntimeError:
+            raise AllInOneError(replaceByMap(".oO[moduleList]Oo. does not exist!", repMap))
 
         for cfg in self.configFiles:
             # FIXME: produce this line only for enabled dbOutput
@@ -271,7 +285,7 @@ class GeometryComparison(GenericValidation):
 
         #~ print configTemplates.scriptTemplate
         scripts = {scriptName: replaceByMap( configTemplates.scriptTemplate, repMap )}
-	files = {replaceByMap("TkAl3DVisualization_.oO[name]Oo..C", repMap ): replaceByMap(configTemplates.visualizationTrackerTemplate, repMap )}
+	files = {replaceByMap("TkAl3DVisualization_.oO[common]Oo._.oO[name]Oo..C", repMap ): replaceByMap(configTemplates.visualizationTrackerTemplate, repMap )}
 	self.createFiles(files, path)
         return GenericValidation.createScript(self, scripts, path)
 
