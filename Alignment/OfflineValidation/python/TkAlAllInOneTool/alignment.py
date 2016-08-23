@@ -28,9 +28,23 @@ class Alignment:
             raise AllInOneError("section %s not found. Please define the "
                                   "alignment!"%section)
         config.checkInput(section,
-                          knownSimpleOptions = ['globaltag', 'style', 'color', 'title'],
+                          knownSimpleOptions = ['globaltag', 'style', 'color', 'title', 'ignoreAlignmentRecords'],
                           knownKeywords = ['condition'])
         self.name = name
+
+        if config.exists(section, "ignoreAlignmentRecords"):
+			self.ignoreAlignmentRecords = config.get(section,"ignoreAlignmentRecords")
+			#can be only true or false, otherwise get error. if not found, put to default False
+			if self.ignoreAlignmentRecords.lower() == 'false':
+				self.ignoreAlignmentRecords = False
+			elif self.ignoreAlignmentRecords.lower() == 'true':
+				self.ignoreAlignmentRecords = True
+			else: 
+				msg = "ignoreAlignmentRecords can be only true or false, value %s not allowed"%self.ignoreAlignmentRecords
+				raise AllInOneError(msg)
+        else:
+			self.ignoreAlignmentRecords = False
+
         if config.exists(section,"title"):
             self.title = config.get(section,"title")
         else:
@@ -163,4 +177,7 @@ class Alignment:
                 loadCond += replaceByMap( temp, cond )
         else:
             loadCond = ""
+        if (self.ignoreAlignmentRecords):
+			#loadCond += "\nprocess.load('Configuration.Geometry.GeometryExtended2017_cff')\nprocess.TrackerDigiGeometryESModule.applyAlignment = False\n"
+		loadCond+="\nprocess.trackerGeometryDB.applyAlignment = False\n"
         return loadCond
